@@ -13,6 +13,15 @@ export default function JobBoard() {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [newJob, setNewJob] = useState({ company: "", role: "", status: "SAVED" });
 
+    // Analytics calculations
+    const totalJobs = jobs.length;
+    const applied = jobs.filter(j => j.status !== "SAVED").length;
+    const responses = jobs.filter(j => ["INTERVIEWING", "OFFERED", "REJECTED"].includes(j.status)).length;
+    const interviews = jobs.filter(j => ["INTERVIEWING", "OFFERED"].includes(j.status)).length;
+    
+    const responseRate = applied ? Math.round((responses / applied) * 100) : 0;
+    const interviewRate = applied ? Math.round((interviews / applied) * 100) : 0;
+
     useEffect(() => {
         fetchJobs();
     }, []);
@@ -74,48 +83,73 @@ export default function JobBoard() {
     if (loading) return <div className="text-white">Loading...</div>;
 
     return (
-        <div className="text-white h-full flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Job Tracker</h1>
+        <div className="text-white h-full flex flex-col font-sans max-w-7xl mx-auto space-y-6 animate-in fade-in">
+            <header className="flex justify-between items-end border-b border-[#1e2330] pb-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2 text-white">Application Pipeline</h1>
+                    <p className="text-[#8598b9]">Track your prospects from saved to hired.</p>
+                </div>
                 <button
                     onClick={() => setIsAddOpen(true)}
-                    className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2"
                 >
                     + Add Application
                 </button>
-            </div>
+            </header>
+
+            {/* Analytics Dashboard */}
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+                <div className="bg-[#131823] border border-[#1e2330] rounded-xl p-5">
+                    <p className="text-xs font-bold text-[#5a6b8a] uppercase tracking-wider mb-2">Total Saved</p>
+                    <p className="text-3xl font-black text-white">{totalJobs}</p>
+                </div>
+                <div className="bg-[#131823] border border-[#1e2330] rounded-xl p-5">
+                    <p className="text-xs font-bold text-[#5a6b8a] uppercase tracking-wider mb-2">Total Applied</p>
+                    <p className="text-3xl font-black text-blue-400">{applied}</p>
+                </div>
+                <div className="bg-[#131823] border border-[#1e2330] rounded-xl p-5 relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl translate-x-10 -translate-y-10"></div>
+                    <p className="text-xs font-bold text-[#5a6b8a] uppercase tracking-wider mb-2">Response Rate</p>
+                    <p className="text-3xl font-black text-emerald-400">{responseRate}%</p>
+                </div>
+                <div className="bg-[#131823] border border-[#1e2330] rounded-xl p-5 relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-amber-500/10 rounded-full blur-xl translate-x-10 -translate-y-10"></div>
+                    <p className="text-xs font-bold text-[#5a6b8a] uppercase tracking-wider mb-2">Interview Conv.</p>
+                    <p className="text-3xl font-black text-amber-400">{interviewRate}%</p>
+                </div>
+            </section>
 
             {isAddOpen && (
-                <form onSubmit={handleAddJob} className="mb-6 p-4 rounded-xl border border-slate-700 bg-slate-800 flex gap-4 items-end">
-                    <div className="flex-1">
-                        <label className="text-xs text-slate-400 mb-1 block uppercase">Company</label>
+                <form onSubmit={handleAddJob} className="p-5 rounded-2xl border border-[#1e2330] bg-[#131823] flex flex-wrap md:flex-nowrap gap-4 items-end mb-4">
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="text-xs font-bold text-[#5a6b8a] uppercase mb-2 block">Company</label>
                         <input
                             required
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white"
+                            className="w-full bg-[#0B0E14] border border-[#1e2330] rounded-lg p-3 text-sm text-white focus:border-blue-500"
                             value={newJob.company} onChange={e => setNewJob({ ...newJob, company: e.target.value })}
                         />
                     </div>
-                    <div className="flex-1">
-                        <label className="text-xs text-slate-400 mb-1 block uppercase">Role</label>
+                    <div className="flex-1 min-w-[200px]">
+                        <label className="text-xs font-bold text-[#5a6b8a] uppercase mb-2 block">Role</label>
                         <input
                             required
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white"
+                            className="w-full bg-[#0B0E14] border border-[#1e2330] rounded-lg p-3 text-sm text-white focus:border-blue-500"
                             value={newJob.role} onChange={e => setNewJob({ ...newJob, role: e.target.value })}
                         />
                     </div>
-                    <div>
-                        <label className="text-xs text-slate-400 mb-1 block uppercase">Status</label>
+                    <div className="min-w-[150px]">
+                        <label className="text-xs font-bold text-[#5a6b8a] uppercase mb-2 block">Status</label>
                         <select
-                            className="bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white"
+                            className="w-full bg-[#0B0E14] border border-[#1e2330] rounded-lg p-3 text-sm text-white focus:border-blue-500"
                             value={newJob.status} onChange={e => setNewJob({ ...newJob, status: e.target.value })}
                         >
                             {COLUMNS.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
-                    <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold h-[38px]">
+                    <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl text-sm font-bold flex-shrink-0">
                         Save
                     </button>
-                    <button type="button" onClick={() => setIsAddOpen(false)} className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold h-[38px]">
+                    <button type="button" onClick={() => setIsAddOpen(false)} className="bg-transparent border border-[#5a6b8a] text-[#8598b9] hover:text-white px-6 py-3 rounded-xl text-sm font-bold flex-shrink-0">
                         Cancel
                     </button>
                 </form>
@@ -131,8 +165,8 @@ export default function JobBoard() {
                             onDragOver={e => e.preventDefault()}
                             onDrop={e => drop(e, col)}
                         >
-                            <h2 className="text-xs font-black tracking-widest text-slate-500 uppercase mb-3 flex justify-between">
-                                {col} <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">{colJobs.length}</span>
+                            <h2 className="text-xs font-black tracking-widest text-[#5a6b8a] uppercase mb-4 flex justify-between items-center px-1">
+                                {col} <span className="bg-[#1e2330] text-slate-300 px-2.5 py-1 rounded-md">{colJobs.length}</span>
                             </h2>
                             <div className="space-y-3">
                                 {colJobs.map(job => (
@@ -140,13 +174,16 @@ export default function JobBoard() {
                                         key={job.id}
                                         draggable
                                         onDragStart={(e) => e.dataTransfer.setData("jobId", job.id)}
-                                        className="bg-slate-800 border border-slate-700 rounded-lg p-4 cursor-grab active:cursor-grabbing group"
+                                        className="bg-[#131823] border border-[#1e2330] hover:border-[#5a6b8a] rounded-xl p-4 cursor-grab active:cursor-grabbing group transition-colors shadow-sm"
                                     >
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h3 className="font-semibold text-white truncate max-w-[80%]">{job.role}</h3>
-                                            <button onClick={() => handleDelete(job.id)} className="text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition">✕</button>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-bold text-slate-200 truncate pr-2 group-hover:text-blue-400 transition-colors">{job.role}</h3>
+                                            <button onClick={() => handleDelete(job.id)} className="text-[#5a6b8a] hover:text-rose-500 opacity-0 group-hover:opacity-100 transition">✕</button>
                                         </div>
-                                        <p className="text-sm text-slate-400">{job.company}</p>
+                                        <div className="flex justify-between items-end">
+                                            <p className="text-sm font-medium text-[#8598b9]">{job.company}</p>
+                                            <p className="text-[10px] font-bold text-[#5a6b8a] uppercase">{job.source || "Manual"}</p>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

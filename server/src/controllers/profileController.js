@@ -58,3 +58,67 @@ export async function getProfile(req, res) {
     if (!profile) return res.status(404).json({ error: "No profile found for this user." });
     res.json(profile);
 }
+
+// ─────────────────────────────────────────────
+// V3: USER CORE DETAILS & SETTINGS
+// ─────────────────────────────────────────────
+
+export async function getUserProfileCore(req, res) {
+    const { userId } = req.params;
+    try {
+        const user = await prisma.user.upsert({
+            where: { id: userId },
+            update: {},
+            create: { id: userId, email: `${userId}@placeholder.local` },
+            include: { experiences: true, educations: true }
+        });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
+export async function updateUserProfileCore(req, res) {
+    const { userId } = req.params;
+    const { name, phone, location, bio, linkedinUrl, githubUrl } = req.body;
+    try {
+        const user = await prisma.user.upsert({
+            where: { id: userId },
+            update: { name, phone, location, bio, linkedinUrl, githubUrl },
+            create: { id: userId, email: `${userId}@placeholder.local`, name, phone, location, bio, linkedinUrl, githubUrl },
+            include: { experiences: true, educations: true }
+        });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
+export async function getUserSettings(req, res) {
+    const { userId } = req.params;
+    try {
+        const prefs = await prisma.userPreferences.upsert({
+            where: { userId },
+            update: {},
+            create: { userId }
+        });
+        res.json(prefs);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
+
+export async function updateUserSettings(req, res) {
+    const { userId } = req.params;
+    const { targetDomain, isPublicProfile, allowRecruiters, emailJobAlerts, emailInterviewReminders, salaryRange, locationPreference } = req.body;
+    try {
+        const prefs = await prisma.userPreferences.upsert({
+            where: { userId },
+            update: { targetDomain, isPublicProfile, allowRecruiters, emailJobAlerts, emailInterviewReminders, salaryRange, locationPreference },
+            create: { userId, targetDomain, isPublicProfile, allowRecruiters, emailJobAlerts, emailInterviewReminders, salaryRange, locationPreference }
+        });
+        res.json(prefs);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}

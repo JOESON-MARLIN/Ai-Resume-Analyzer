@@ -1,9 +1,12 @@
-// profileRoutes.js
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { uploadAndParseProfile, getProfile } from "../controllers/profileController.js";
+import { 
+    uploadAndParseProfile, getProfile, 
+    getUserProfileCore, updateUserProfileCore,
+    getUserSettings, updateUserSettings 
+} from "../controllers/profileController.js";
 
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -35,5 +38,11 @@ router.post("/upload", upload.single("resume"), uploadAndParseProfile);
 
 // GET  /api/profile/:userId  — fetch a user's MasterProfile
 router.get("/:userId", getProfile);
+
+// V3 Routes
+router.get("/user/:userId", getUserProfileCore);
+router.put("/user/:userId", updateUserProfileCore);
+router.get("/settings/:userId", getUserSettings);
+router.put("/settings/:userId", updateUserSettings);
 
 export default router;

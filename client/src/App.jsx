@@ -9,6 +9,9 @@ import LinkedInOptimizer from "./components/LinkedInOptimizer.jsx";
 import ResumeHome from "./components/ResumeHome.jsx";
 import AtsChecker from "./components/AtsChecker.jsx";
 import Dashboard from "./components/Dashboard.jsx";
+import Profile from "./components/Profile.jsx";
+import Settings from "./components/Settings.jsx";
+import JobSearch from "./components/JobSearch.jsx";
 
 // Hardcoded userId for now
 const MOCK_USER_ID = "user_dev_001";
@@ -21,9 +24,12 @@ export default function App() {
                 {/* Redirect / to /dashboard */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 
-                {/* Dashboard & Jobs */}
+                {/* Core Navigation Hubs */}
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/search" element={<JobSearch />} />
                 <Route path="/jobs" element={<JobBoard />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
                 
                 {/* Resume Engine Hub */}
                 <Route path="/resume" element={<ResumeHome />} />

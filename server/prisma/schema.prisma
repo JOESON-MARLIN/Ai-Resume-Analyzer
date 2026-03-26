@@ -37,6 +37,12 @@ model User {
   email          String          @unique
   name           String?
   avatarUrl      String?
+  phone          String?
+  location       String?
+  bio            String?         @db.Text
+  portfolioUrl   String?
+  githubUrl      String?
+  linkedinUrl    String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -46,6 +52,8 @@ model User {
   tailoredResumes TailoredResume[]
   jobApplications JobApplication[]
   preferences     UserPreferences?
+  experiences     Experience[]
+  educations      Education[]
 
   @@index([email])
 }
@@ -241,29 +249,73 @@ enum JobApplicationStatus {
 }
 
 model JobApplication {
-  id        String   @id @default(cuid())
-  userId    String
-  company   String
-  role      String
-  url       String?
-  salary    String?
-  notes     String?  @db.Text
-  status    JobApplicationStatus @default(SAVED)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  userId         String
+  company        String
+  role           String
+  url            String?
+  salary         String?
+  notes          String?  @db.Text
+  source         String?
+  dateApplied    DateTime?
+  followUpDate   DateTime?
+  status         JobApplicationStatus @default(SAVED)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model UserPreferences {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  targetDomain    String?  // SWE, PM, Data, AI
-  targetCompanies Json?    // ["Google", "Meta", "Amazon"]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  targetDomain       String?  // SWE, PM, Data, AI
+  targetCompanies    Json?    // ["Google", "Meta", "Amazon"]
+  
+  // V3 Settings Additions
+  isPublicProfile    Boolean  @default(false)
+  allowRecruiters    Boolean  @default(false)
+  emailJobAlerts     Boolean  @default(true)
+  emailInterviewReminders Boolean @default(true)
+  preferredRoles     Json?    // ["Frontend", "Full Stack"]
+  salaryRange        String?  // e.g. "$120k - $150k"
+  locationPreference String?  // remote, onsite, hybrid
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────
+// V3 EXTENSIONS: EXPERIENCE & EDUCATION
+// ─────────────────────────────────────────────
+
+model Experience {
+  id          String    @id @default(cuid())
+  userId      String
+  company     String
+  role        String
+  startDate   DateTime
+  endDate     DateTime?
+  isCurrent   Boolean   @default(false)
+  description String?   @db.Text
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Education {
+  id          String    @id @default(cuid())
+  userId      String
+  institution String
+  degree      String
+  field       String
+  startYear   Int?
+  endYear     Int?
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }

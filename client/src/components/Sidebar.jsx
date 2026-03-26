@@ -5,10 +5,13 @@ export default function Sidebar() {
 
     const links = [
         { path: "/dashboard", label: "Dashboard", icon: "🏠" },
-        { path: "/study", label: "Hubs", icon: "📚" },
+        { path: "/search", label: "Job Search", icon: "🔍" },
         { path: "/jobs", label: "Job Tracker", icon: "📋" },
+        { path: "/study", label: "Hubs", icon: "📚" },
         { path: "/resume", label: "Resume Analyzer", icon: "📄" },
         { path: "/linkedin", label: "LinkedIn Optimizer", icon: "💼" },
+        { path: "/profile", label: "My Profile", icon: "👤" },
+        { path: "/settings", label: "Settings", icon: "⚙️" },
     ];
 
     return (
