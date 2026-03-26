@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useCareer } from "../CareerContext.jsx";
 
 // ─── Job Database ────────────────────────────────────────────────────────────
 const JOB_DATABASE = [
@@ -116,6 +117,7 @@ export default function ResumeAnalyzer() {
     const [activeTab, setActiveTab] = useState("overview");
     const [selectedJob, setSelectedJob] = useState(null);
     const fileRef = useRef(null);
+    const { saveResumeData } = useCareer();
 
     function handleFile(e) {
         const file = e.target.files?.[0];
@@ -134,6 +136,8 @@ export default function ResumeAnalyzer() {
         setAnalysis(result);
         setActiveTab("overview");
         setSelectedJob(null);
+        // Save to shared context so other features can use it
+        saveResumeData(result.skillsFound, result.score, resumeText);
     }
 
     const getScoreLabel = (s) => {
