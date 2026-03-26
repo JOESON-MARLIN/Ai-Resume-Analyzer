@@ -46,7 +46,7 @@ export const parseResume = async (resumeText) => {
         return JSON.parse(cleanJsonOutput(response.text));
     } catch (error) {
         console.error('AI parseResume error:', error);
-        throw new Error('Failed to parse resume with AI');
+        throw new Error(`Gemini AI Error: ${error.message}`);
     }
 };
 
