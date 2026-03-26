@@ -44,6 +44,8 @@ model User {
   masterProfile  MasterProfile?
   jobPostings    JobPosting[]
   tailoredResumes TailoredResume[]
+  jobApplications JobApplication[]
+  preferences     UserPreferences?
 
   @@index([email])
 }
@@ -224,4 +226,44 @@ model TailoredResume {
   @@index([userId, status])
   @@index([masterProfileId])
   @@index([jobPostingId])
+}
+
+// ─────────────────────────────────────────────
+// V2 FEATURES: JOB APPLICATION & PREFERENCES
+// ─────────────────────────────────────────────
+
+enum JobApplicationStatus {
+  SAVED
+  APPLIED
+  INTERVIEWING
+  OFFERED
+  REJECTED
+}
+
+model JobApplication {
+  id        String   @id @default(cuid())
+  userId    String
+  company   String
+  role      String
+  url       String?
+  salary    String?
+  notes     String?  @db.Text
+  status    JobApplicationStatus @default(SAVED)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserPreferences {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  targetDomain    String?  // SWE, PM, Data, AI
+  targetCompanies Json?    // ["Google", "Meta", "Amazon"]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

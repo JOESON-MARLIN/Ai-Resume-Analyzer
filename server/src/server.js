@@ -12,9 +12,10 @@ import { Server as SocketIOServer } from "socket.io";
 import { PrismaClient } from "@prisma/client";
 
 // Route imports
-import profileRouter from "./routes/profileRoutes.js";
-import tailorRouter from "./routes/tailorRoutes.js";
-import jobRouter from "./routes/jobRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import tailorRoutes from "./routes/tailorRoutes.js";
+import jobRoutes from "./routes/jobRoutes.js";
+import linkedinRoutes from "./routes/linkedinRoutes.js";
 
 // ─── Singleton Prisma client ──────────────────────────────────────────────────
 // Export so controllers can import without re-instantiating.
@@ -66,9 +67,10 @@ app.get("/health", (_req, res) => {
 });
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
-app.use("/api/profile", profileRouter);
-app.use("/api/tailor", tailorRouter);
-app.use("/api/jobs", jobRouter);
+app.use("/api/profile", profileRoutes);
+app.use("/api/tailor", tailorRoutes);
+app.use("/api/jobs", jobRoutes);
+app.use("/api/linkedin", linkedinRoutes);
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 // Must have 4 params for Express to treat it as an error handler.

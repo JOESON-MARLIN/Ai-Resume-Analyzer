@@ -218,7 +218,7 @@ export default function TailorDashboard({ userId }) {
         socket.on("tailor:complete", (data) => {
             setProgress(100);
             setStatusMessage("Redirecting to your results...");
-            navigate("/results", { state: { result: data } });
+            navigate("/resume/results", { state: { result: data } });
         });
 
         // ── Error ────────────────────────────────────────────────────────────────

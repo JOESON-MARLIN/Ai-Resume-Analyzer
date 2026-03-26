@@ -38,7 +38,7 @@ export default function UploadResume({ userId }) {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             // Hackathon bypass: parsing is instant, go straight to dashboard
-            navigate("/dashboard");
+            navigate("/resume/tailor");
         } catch (err) {
             setPhase("error");
             setMessage(err.response?.data?.error ?? "Upload failed. Please try again.");
