@@ -183,7 +183,8 @@ export default function ResumeAnalyzer() {
             saveResumeData(frontEndAnalysis.skillsFound, frontEndAnalysis.score, resumeText);
         } catch (error) {
             console.error("Analysis Error:", error);
-            alert("Failed to analyze resume via AI API.");
+            const errorMsg = error.response?.data?.error || error.message || "Unknown API Error";
+            alert(`Analysis Failed: ${errorMsg}`);
         } finally {
             setAnalyzing(false);
         }

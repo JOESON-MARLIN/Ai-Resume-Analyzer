@@ -37,7 +37,7 @@ export const parseResumeText = async (req, res) => {
         res.status(200).json({ analysis, textExtracted: text });
     } catch (error) {
         console.error('parseResume Error:', error);
-        res.status(500).json({ error: 'Failed to analyze resume' });
+        res.status(500).json({ error: error.message || 'Failed to analyze resume' });
     }
 };
 
