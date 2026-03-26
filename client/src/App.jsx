@@ -12,6 +12,7 @@ import Settings from "./components/Settings.jsx";
 import JobSearch from "./components/JobSearch.jsx";
 import ResumeBuilder from "./components/ResumeBuilder.jsx";
 import ResumeAnalyzer from "./components/ResumeAnalyzer.jsx";
+import ResumeRewriter from "./components/ResumeRewriter.jsx";
 
 // Hardcoded userId for now
 const MOCK_USER_ID = "user_dev_001";
@@ -35,6 +36,7 @@ export default function App() {
                 <Route path="/resume" element={<ResumeHome />} />
                 <Route path="/resume/builder" element={<ResumeBuilder />} />
                 <Route path="/resume/analyzer" element={<ResumeAnalyzer />} />
+                <Route path="/resume/rewriter" element={<ResumeRewriter />} />
                 <Route path="/resume/results" element={<ResumeResults />} />
                 <Route path="/resume/ats-checker" element={<AtsChecker />} />
 
