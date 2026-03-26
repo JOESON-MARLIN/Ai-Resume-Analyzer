@@ -2,6 +2,7 @@
 // Career Copilot — Express + Socket.io entry point
 // ─────────────────────────────────────────────────────────────────────────────
 
+import "dotenv/config";
 import express from "express";
 import http from "http";
 import cors from "cors";
