@@ -316,7 +316,7 @@ Tailor the master profile for this specific job description. Follow every rule i
         emitStatus(io, userId, "tailor:error", {
             tailoredResumeId,
             message: "Something went wrong while tailoring your resume.",
-            detail: process.env.NODE_ENV === "development" ? err.message : undefined,
+            detail: err.message, // Expose for hackathon debugging
         });
 
         // Response was already sent (202) — can't send another.
