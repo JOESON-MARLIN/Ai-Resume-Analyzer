@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "./AuthContext.jsx";
 import Layout from "./components/Layout.jsx";
 import ResumeResults from "./components/ResumeResults.jsx";
 import JobBoard from "./components/JobBoard.jsx";
@@ -13,36 +14,40 @@ import JobSearch from "./components/JobSearch.jsx";
 import ResumeBuilder from "./components/ResumeBuilder.jsx";
 import ResumeAnalyzer from "./components/ResumeAnalyzer.jsx";
 import ResumeRewriter from "./components/ResumeRewriter.jsx";
+import Login from "./components/Login.jsx";
 
-// Hardcoded userId for now
-const MOCK_USER_ID = "user_dev_001";
+function ProtectedRoute() {
+    const { user, loading } = useAuth();
+    
+    if (loading) return <div className="p-10 text-center font-bold text-slate-500">Loading CareerCraft...</div>;
+    return user ? <Outlet /> : <Navigate to="/login" replace />;
+}
 
 export default function App() {
     return (
         <Routes>
-            {/* The outer Layout provides the Sidebar */}
-            <Route element={<Layout />}>
-                {/* Redirect / to /dashboard */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-                {/* Core Navigation Hubs */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/search" element={<JobSearch />} />
-                <Route path="/jobs" element={<JobBoard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
-
-                {/* Resume Engine Hub */}
-                <Route path="/resume" element={<ResumeHome />} />
-                <Route path="/resume/builder" element={<ResumeBuilder />} />
-                <Route path="/resume/analyzer" element={<ResumeAnalyzer />} />
-                <Route path="/resume/rewriter" element={<ResumeRewriter />} />
-                <Route path="/resume/results" element={<ResumeResults />} />
-                <Route path="/resume/ats-checker" element={<AtsChecker />} />
-
-                {/* Other features */}
-                <Route path="/linkedin" element={<LinkedInOptimizer />} />
-                <Route path="/study" element={<StudyHub />} />
+            <Route path="/login" element={<Login />} />
+            
+            <Route element={<ProtectedRoute />}>
+                <Route element={<Layout />}>
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/search" element={<JobSearch />} />
+                    <Route path="/jobs" element={<JobBoard />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/settings" element={<Settings />} />
+                    
+                    <Route path="/resume" element={<ResumeHome />} />
+                    <Route path="/resume/builder" element={<ResumeBuilder />} />
+                    <Route path="/resume/analyzer" element={<ResumeAnalyzer />} />
+                    <Route path="/resume/rewriter" element={<ResumeRewriter />} />
+                    <Route path="/resume/results" element={<ResumeResults />} />
+                    <Route path="/resume/ats-checker" element={<AtsChecker />} />
+                    
+                    <Route path="/linkedin" element={<LinkedInOptimizer />} />
+                    <Route path="/study" element={<StudyHub />} />
+                </Route>
             </Route>
         </Routes>
     );

@@ -1,17 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useCareer, JOB_DATABASE as CONTEXT_JOBS } from "../CareerContext.jsx";
+import { useCareer } from "../CareerContext.jsx";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 const MOCK_USER_ID = "user_dev_001";
 
-const JOBS = CONTEXT_JOBS;
-
 const SKILL_FILTERS = ["React", "Python", "TypeScript", "Node.js", "AWS", "SQL", "Java", "GraphQL"];
 
 export default function JobSearch() {
-    const { hasResume, resumeSkills, resumeScore, getJobMatches } = useCareer();
+    const { hasResume, resumeText, getJobMatches, resumeScore, resumeSkills } = useCareer();
+    const [JOBS, setJOBS] = useState([]);
     const [query, setQuery] = useState("");
     const [location, setLocation] = useState("");
     const [remoteOnly, setRemoteOnly] = useState(false);
@@ -23,9 +22,37 @@ export default function JobSearch() {
     const [savedJobs, setSavedJobs] = useState(new Set());
     const [sortBy, setSortBy] = useState("relevance");
 
-    // Get resume-based match data
+    // Initial Fetch Map
+    useEffect(() => {
+        axios.get(`${API_BASE}/api/jobs/search`).then(res => {
+            setJOBS(res.data);
+            setResults(res.data);
+        }).catch(err => console.error("Error fetching jobs:", err));
+    }, []);
+
+    // Get resume-based match data (fast context calculation)
     const jobMatches = hasResume ? getJobMatches() : [];
     const matchMap = new Map(jobMatches.map(j => [j.id, j]));
+
+    const [aiMatchLoading, setAiMatchLoading] = useState(null);
+    const [deepMatchResult, setDeepMatchResult] = useState(null);
+
+    async function handleDeepMatch(job) {
+        if (!resumeText) return;
+        setAiMatchLoading(job.id);
+        setDeepMatchResult(null);
+        try {
+            const { data } = await axios.post(`${API_BASE}/api/resume/match`, {
+                resumeText,
+                jobDescription: `Role: ${job.role}\nCompany: ${job.company}\nSkills Required: ${job.skills.join(', ')}`
+            });
+            setDeepMatchResult({ id: job.id, ...data });
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setAiMatchLoading(null);
+        }
+    }
 
     function toggleSkill(skill) {
         setSelectedSkills(prev => {
@@ -218,6 +245,12 @@ export default function JobSearch() {
                                     </div>
                                 </div>
                                 <div className="flex flex-row md:flex-col gap-2 shrink-0">
+                                    {hasResume && (
+                                        <button onClick={() => handleDeepMatch(job)} disabled={aiMatchLoading === job.id}
+                                            className="px-5 py-2.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-xl font-bold text-xs text-center transition">
+                                            {aiMatchLoading === job.id ? 'Analyzing...' : '🧠 Deep AI Match'}
+                                        </button>
+                                    )}
                                     <button onClick={() => handleSaveJob(job)} disabled={isSaved}
                                         className={`px-5 py-2.5 rounded-xl font-bold text-xs transition ${isSaved
                                             ? "bg-blue-50 text-blue-600 border border-blue-200 cursor-default"
@@ -225,14 +258,38 @@ export default function JobSearch() {
                                         }`}>
                                         {isSaved ? "✓ Saved" : "Save to Tracker"}
                                     </button>
-                                    <a href="#" className="px-5 py-2.5 bg-white text-slate-700 border border-slate-200 hover:border-blue-400 rounded-xl font-bold text-xs text-center transition">
-                                        Apply Now →
-                                    </a>
                                 </div>
                             </div>
 
-                            {/* Skill gap detail (only if resume loaded) */}
-                            {hasResume && matchData && matchData.missingSkills.length > 0 && (
+                            {/* Deep Match Result Overlay */}
+                            {deepMatchResult && deepMatchResult.id === job.id && (
+                                <div className="mt-4 p-4 border border-indigo-200 bg-indigo-50 rounded-xl ml-11">
+                                    <p className="text-xs font-black text-indigo-700 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <span>🧠</span> AI Match Report
+                                    </p>
+                                    <p className="text-sm font-semibold text-slate-700 mb-3">{deepMatchResult.feedback}</p>
+                                    <div className="flex flex-wrap gap-4">
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Matched Skills</p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {deepMatchResult.matchedSkills?.map(s => <span key={s} className="bg-green-100 text-green-700 px-2 py-0.5 rounded textxs font-bold">{s}</span>)}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Missing Skills</p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {deepMatchResult.missingSkills?.map(s => <span key={s} className="bg-red-100 text-red-700 px-2 py-0.5 rounded textxs font-bold">{s}</span>)}
+                                            </div>
+                                        </div>
+                                        <div className="ml-auto flex items-center font-black text-indigo-700 text-lg">
+                                            {deepMatchResult.matchPercent}% Match
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Fast Match Skill gap detail (only if resume loaded and no deep match) */}
+                            {hasResume && matchData && matchData.missingSkills.length > 0 && (!deepMatchResult || deepMatchResult.id !== job.id) && (
                                 <div className="mt-3 pt-3 border-t border-slate-100 ml-11">
                                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-1.5">Skills to add for this role:</p>
                                     <div className="flex flex-wrap gap-1">

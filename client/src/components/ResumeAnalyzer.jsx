@@ -1,5 +1,8 @@
 import { useState, useRef } from "react";
 import { useCareer } from "../CareerContext.jsx";
+import axios from 'axios';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 // ─── Job Database ────────────────────────────────────────────────────────────
 const JOB_DATABASE = [
@@ -130,16 +133,44 @@ export default function ResumeAnalyzer() {
         reader.readAsText(file);
     }
 
-    function handleAnalyze() {
+    async function handleAnalyze() {
         if (!resumeText.trim()) return;
-        const result = analyzeResume(resumeText);
-        setAnalysis(result);
-        setActiveTab("overview");
+        setAnalyzing(true);
+        setAnalysis(null);
         setSelectedJob(null);
-        // Save to shared context so other features can use it
-        saveResumeData(result.skillsFound, result.score, resumeText);
-    }
 
+        try {
+            const { data } = await axios.post(`${API_BASE}/api/resume/parse`, {
+                text: resumeText
+            });
+            const result = data.analysis;
+            
+            // Re-shape backend response if needed to match frontend expectations
+            const frontEndAnalysis = {
+                score: result.score || 75,
+                wordCount: result.wordCount || 0,
+                sectionsFound: result.sectionsFound || [],
+                sectionsMissing: result.sectionsMissing || [],
+                skillsFound: result.skillsFound || [],
+                verbsUsed: result.verbsUsed || [],
+                hasMetrics: result.hasMetrics || false,
+                metricCount: result.metricCount || 0,
+                improvements: result.improvements || [],
+                jobMatches: result.jobMatches || [],
+            };
+
+            setAnalysis(frontEndAnalysis);
+            setActiveTab("overview");
+            
+            // Save to shared context so other features can use it
+            saveResumeData(frontEndAnalysis.skillsFound, frontEndAnalysis.score, resumeText);
+        } catch (error) {
+            console.error("Analysis Error:", error);
+            alert("Failed to analyze resume via AI API.");
+        } finally {
+            setAnalyzing(false);
+        }
+    }
     const getScoreLabel = (s) => {
         if (s >= 80) return { label: "Excellent", color: "text-green-600", bg: "bg-green-50", border: "border-green-200" };
         if (s >= 60) return { label: "Good", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" };

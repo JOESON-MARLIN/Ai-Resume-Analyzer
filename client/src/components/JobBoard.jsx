@@ -1,293 +1,213 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useMemo, useEffect } from "react";
+import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
-const MOCK_USER_ID = "user_dev_001";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const COLUMNS = [
-    { key: "SAVED", label: "Saved", color: "bg-blue-500", emoji: "📌" },
-    { key: "APPLIED", label: "Applied", color: "bg-blue-600", emoji: "📤" },
-    { key: "INTERVIEWING", label: "Interviewing", color: "bg-blue-500", emoji: "🎙️" },
-    { key: "OFFERED", label: "Offered", color: "bg-green-500", emoji: "🎉" },
-    { key: "REJECTED", label: "Rejected", color: "bg-slate-400", emoji: "❌" },
+    { id: "SAVED", label: "Saved", icon: "⭐", borderTop: "border-slate-300" },
+    { id: "APPLIED", label: "Applied", icon: "📝", borderTop: "border-blue-400" },
+    { id: "INTERVIEWING", label: "Interview", icon: "🎙️", borderTop: "border-purple-400" },
+    { id: "OFFERED", label: "Offer", icon: "🎉", borderTop: "border-green-400" },
+    { id: "REJECTED", label: "Closed", icon: "🛑", borderTop: "border-red-400" }
 ];
 
 export default function JobBoard() {
     const [jobs, setJobs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isAddOpen, setIsAddOpen] = useState(false);
+    const [isAdding, setIsAdding] = useState(false);
     const [expandedJob, setExpandedJob] = useState(null);
-    const [newJob, setNewJob] = useState({ company: "", role: "", status: "SAVED", url: "", salary: "", notes: "", followUpDate: "" });
-    const [toast, setToast] = useState("");
+    const [newJob, setNewJob] = useState({ company: "", role: "", url: "", salary: "", source: "", notes: "" });
+    const [dragActive, setDragActive] = useState(false);
+    const [draggedJob, setDraggedJob] = useState(null);
+    const [toastMessage, setToastMessage] = useState(null);
 
-    // Analytics
-    const totalJobs = jobs.length;
-    const applied = jobs.filter(j => j.status !== "SAVED").length;
-    const responses = jobs.filter(j => ["INTERVIEWING", "OFFERED", "REJECTED"].includes(j.status)).length;
-    const interviews = jobs.filter(j => ["INTERVIEWING", "OFFERED"].includes(j.status)).length;
-    const offers = jobs.filter(j => j.status === "OFFERED").length;
-    const responseRate = applied ? Math.round((responses / applied) * 100) : 0;
-    const interviewRate = applied ? Math.round((interviews / applied) * 100) : 0;
-    const offerRate = interviews ? Math.round((offers / interviews) * 100) : 0;
+    useEffect(() => {
+        const fetchJobs = async () => {
+            try {
+                const { data } = await axios.get(`${API_BASE}/api/applications`);
+                setJobs(data);
+            } catch (error) {
+                console.error("Failed to load applications", error);
+            }
+        };
+        fetchJobs();
+    }, []);
 
-    useEffect(() => { fetchJobs(); }, []);
+    const stats = useMemo(() => {
+        const counts = { SAVED: 0, APPLIED: 0, INTERVIEWING: 0, OFFERED: 0, REJECTED: 0 };
+        jobs.forEach(job => counts[job.status]++);
+        const total = jobs.length;
+        const active = counts.APPLIED + counts.INTERVIEWING;
+        const responseRate = counts.APPLIED > 0 ? Math.round((counts.INTERVIEWING + counts.OFFERED) / counts.APPLIED * 100) : 0;
+        return { total, active, interviews: counts.INTERVIEWING, offers: counts.OFFERED, responseRate, counts };
+    }, [jobs]);
 
-    async function fetchJobs() {
-        try {
-            const { data } = await axios.get(`${API_BASE}/api/jobs/${MOCK_USER_ID}`);
-            setJobs(data);
-        } catch (error) {
-            console.error(error);
-        } finally { setLoading(false); }
+    function showToast(msg) {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3000);
     }
-
-    function showToast(msg) { setToast(msg); setTimeout(() => setToast(""), 3000); }
 
     async function handleAddJob(e) {
         e.preventDefault();
         try {
-            const { data } = await axios.post(`${API_BASE}/api/jobs`, { ...newJob, userId: MOCK_USER_ID });
+            const { data } = await axios.post(`${API_BASE}/api/applications`, { ...newJob, status: "SAVED" });
             setJobs([data, ...jobs]);
-            setIsAddOpen(false);
-            setNewJob({ company: "", role: "", status: "SAVED", url: "", salary: "", notes: "", followUpDate: "" });
-            showToast("✅ Job added to pipeline!");
+            setNewJob({ company: "", role: "", url: "", salary: "", source: "", notes: "" });
+            setIsAdding(false);
+            showToast("Job added to pipeline!");
         } catch (error) {
-            console.error(error);
-            showToast("❌ Failed to add job");
+            console.error("Failed to add job", error);
         }
     }
 
     async function handleDelete(id) {
         try {
-            await axios.delete(`${API_BASE}/api/jobs/${id}`);
+            await axios.delete(`${API_BASE}/api/applications/${id}`);
             setJobs(jobs.filter(j => j.id !== id));
-            showToast("🗑️ Job removed");
-        } catch (err) { console.error(err); }
+            showToast("Job removed");
+        } catch (error) {
+            console.error(error);
+        }
     }
 
-    async function moveJob(id, newStatus) {
-        setJobs(prev => prev.map(j => (j.id === id ? { ...j, status: newStatus } : j)));
-        try {
-            await axios.patch(`${API_BASE}/api/jobs/${id}/status`, { status: newStatus });
-            showToast(`📋 Moved to ${newStatus}`);
-        } catch (err) { fetchJobs(); }
+    function toggleExpand(id) {
+        setExpandedJob(expandedJob === id ? null : id);
     }
 
-    async function drop(e, newStatus) {
-        const id = e.dataTransfer.getData("jobId");
-        if (!id) return;
-        const draggedJob = jobs.find(j => j.id === id);
-        if (draggedJob?.status === newStatus) return;
-        moveJob(id, newStatus);
+    // --- Drag & Drop ---
+    function handleDragStart(job) {
+        setDraggedJob(job);
+        setDragActive(true);
     }
 
-    // Auto-fill from URL
-    function handleUrlPaste(url) {
-        setNewJob(prev => {
-            const lower = url.toLowerCase();
-            let company = "";
-            if (lower.includes("google")) company = "Google";
-            else if (lower.includes("amazon")) company = "Amazon";
-            else if (lower.includes("meta") || lower.includes("facebook")) company = "Meta";
-            else if (lower.includes("apple")) company = "Apple";
-            else if (lower.includes("netflix")) company = "Netflix";
-            else if (lower.includes("microsoft")) company = "Microsoft";
-            else if (lower.includes("spotify")) company = "Spotify";
-            else if (lower.includes("stripe")) company = "Stripe";
-            else if (lower.includes("linkedin")) company = "LinkedIn";
-            else {
-                try {
-                    const hostname = new URL(url).hostname;
-                    company = hostname.replace("www.", "").replace("careers.", "").split(".")[0];
-                    company = company.charAt(0).toUpperCase() + company.slice(1);
-                } catch { /* ignore */ }
+    function handleDragOver(e) {
+        e.preventDefault();
+    }
+
+    async function handleDragEnd(e) {
+        setDragActive(false);
+        if (!draggedJob) return;
+
+        const container = e.target.closest('.column-container');
+        if (!container) {
+            setDraggedJob(null);
+            return;
+        }
+
+        const newStatus = container.getAttribute('data-status');
+        if (newStatus && draggedJob.status !== newStatus) {
+            try {
+                const updatedJob = { ...draggedJob, status: newStatus };
+                setJobs(jobs.map(j => j.id === draggedJob.id ? updatedJob : j));
+                await axios.patch(`${API_BASE}/api/applications/${draggedJob.id}/status`, { status: newStatus });
+            } catch (error) {
+                console.error("Failed to update status", error);
+                setJobs([...jobs]); // Revert state if backend fails
             }
-            return { ...prev, url, company: company || prev.company };
-        });
+        }
+        setDraggedJob(null);
     }
-
-    if (loading) return <div className="text-slate-500 p-8 text-center text-lg">Loading pipeline...</div>;
 
     return (
-        <div className="text-slate-800 h-full flex flex-col font-sans max-w-7xl mx-auto space-y-6 pb-10">
-            {/* Toast */}
-            {toast && (
-                <div className="fixed top-6 right-6 z-50 bg-white border border-slate-200 shadow-2xl rounded-2xl px-6 py-4 text-sm font-bold text-slate-800">
-                    {toast}
-                </div>
-            )}
-
-            {/* Hero */}
-            <header className="bg-gradient-to-br from-blue-600 to-blue-400 rounded-3xl p-10 text-white relative overflow-hidden group shadow-xl shadow-blue-500/20">
-                <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-x-16 -translate-y-16 group-hover:scale-125 transition-transform duration-700"></div>
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex items-center gap-4">
-                        <span className="text-5xl drop-shadow-md">📋</span>
-                        <div>
-                            <h1 className="text-3xl font-extrabold tracking-tight">Application Pipeline</h1>
-                            <p className="text-white/80 font-medium">Track every job from saved to hired. Drag cards between columns.</p>
+        <div className="max-w-7xl mx-auto space-y-6 pb-10">
+            {/* Header omitted for brevity, keeping it simple but beautiful */}
+            <header className="bg-gradient-to-br from-blue-600 to-blue-400 rounded-3xl p-10 text-white relative overflow-hidden shadow-xl shadow-blue-500/20">
+                <div className="relative z-10 flex justify-between items-end">
+                    <div>
+                        <div className="flex items-center gap-3 mb-3">
+                            <span className="text-4xl">📋</span>
+                            <h1 className="text-3xl font-extrabold tracking-tight">Job Tracker</h1>
                         </div>
+                        <p className="text-white/80 text-lg font-medium max-w-xl">Manage your applications and interviews in one drag-and-drop workspace.</p>
                     </div>
-                    <button onClick={() => setIsAddOpen(true)} className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-xl text-sm font-bold transition shadow-lg shrink-0">
-                        + Add Application
+                    <button onClick={() => setIsAdding(!isAdding)} className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:shadow-lg transition">
+                        {isAdding ? "Cancel" : "+ Add Job Manually"}
                     </button>
                 </div>
             </header>
 
-            {/* Analytics Dashboard */}
-            <section className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                {[
-                    { label: "Total Saved", value: totalJobs, icon: "📌", color: "text-blue-600" },
-                    { label: "Applied", value: applied, icon: "📤", color: "text-blue-600" },
-                    { label: "Response Rate", value: `${responseRate}%`, icon: "📊", color: "text-blue-600" },
-                    { label: "Interview Conv.", value: `${interviewRate}%`, icon: "🎙️", color: "text-blue-600" },
-                    { label: "Offer Rate", value: `${offerRate}%`, icon: "🎉", color: "text-green-600" },
-                ].map(s => (
-                    <div key={s.label} className="bg-white border border-slate-100 rounded-xl p-4 hover:shadow-md transition">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-xl">{s.icon}</span>
-                            <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
-                        </div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{s.label}</p>
-                    </div>
-                ))}
-            </section>
+            {/* Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="bg-white border text-left border-slate-200/60 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Jobs</span>
+                    <span className="text-2xl font-black text-slate-800">{stats.total}</span>
+                </div>
+                <div className="bg-white border text-left border-slate-200/60 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Active Apps</span>
+                    <span className="text-2xl font-black text-blue-600">{stats.active}</span>
+                </div>
+                <div className="bg-white border text-left border-slate-200/60 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Interviews</span>
+                    <span className="text-2xl font-black text-purple-600">{stats.interviews}</span>
+                </div>
+                <div className="bg-white border text-left border-slate-200/60 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Response Rate</span>
+                    <span className="text-2xl font-black text-slate-800">{stats.responseRate}%</span>
+                </div>
+                <div className="bg-white border text-left border-slate-200/60 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Offers</span>
+                    <span className="text-2xl font-black text-green-600">{stats.offers}</span>
+                </div>
+            </div>
 
-            {/* Add Job Form */}
-            {isAddOpen && (
-                <form onSubmit={handleAddJob} className="p-5 rounded-2xl border border-blue-200 bg-blue-50/50 space-y-4">
-                    <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">Add New Application</h3>
-                    
-                    {/* URL auto-fill */}
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Job Posting URL (auto-fills company)</label>
-                        <input
-                            className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 focus:border-blue-500 outline-none"
-                            value={newJob.url} 
-                            onChange={e => handleUrlPaste(e.target.value)}
-                            placeholder="https://careers.google.com/jobs/123 (auto-detects company)"
-                        />
+            {/* Add Job Panel */}
+            {isAdding && (
+                <form onSubmit={handleAddJob} className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-lg transform transition-all">
+                    <div className="grid md:grid-cols-3 gap-5 mb-5">
+                        <div className="space-y-1.5"><label className="text-xs font-bold text-slate-500 uppercase">Company *</label><input required value={newJob.company} onChange={e => setNewJob({...newJob, company: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500" placeholder="e.g. Google" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-bold text-slate-500 uppercase">Role *</label><input required value={newJob.role} onChange={e => setNewJob({...newJob, role: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500" placeholder="e.g. Frontend Engineer" /></div>
+                        <div className="space-y-1.5"><label className="text-xs font-bold text-slate-500 uppercase">Salary Base</label><input value={newJob.salary} onChange={e => setNewJob({...newJob, salary: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500" placeholder="e.g. $150k" /></div>
                     </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Company *</label>
-                            <input required className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 focus:border-blue-500 outline-none"
-                                value={newJob.company} onChange={e => setNewJob({ ...newJob, company: e.target.value })} placeholder="Google" />
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Role *</label>
-                            <input required className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 focus:border-blue-500 outline-none"
-                                value={newJob.role} onChange={e => setNewJob({ ...newJob, role: e.target.value })} placeholder="Frontend Engineer" />
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Salary</label>
-                            <input className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 focus:border-blue-500 outline-none"
-                                value={newJob.salary} onChange={e => setNewJob({ ...newJob, salary: e.target.value })} placeholder="$140k - $180k" />
-                        </div>
-                        <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Follow-up Date</label>
-                            <input type="date" className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 focus:border-blue-500 outline-none"
-                                value={newJob.followUpDate} onChange={e => setNewJob({ ...newJob, followUpDate: e.target.value })} />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Notes</label>
-                        <textarea className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-800 focus:border-blue-500 outline-none resize-none"
-                            rows={2} value={newJob.notes} onChange={e => setNewJob({ ...newJob, notes: e.target.value })} placeholder="Interview prep notes, referral contacts, etc." />
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition">Save Application</button>
-                        <button type="button" onClick={() => setIsAddOpen(false)} className="text-slate-500 hover:text-slate-700 px-4 py-2.5 text-sm font-bold transition">Cancel</button>
+                    <div className="flex justify-end gap-3">
+                        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition shadow-md shadow-blue-500/20">Save Job Details</button>
                     </div>
                 </form>
             )}
 
-            {/* Pipeline Visualization */}
-            <div className="bg-white border border-slate-200/60 rounded-2xl p-4 shadow-sm">
-                <div className="flex gap-1 h-4 rounded-full overflow-hidden bg-slate-100 mb-6">
-                    {COLUMNS.map(col => {
-                        const count = jobs.filter(j => j.status === col.key).length;
-                        const pct = totalJobs ? (count / totalJobs) * 100 : 0;
-                        return pct > 0 ? <div key={col.key} className={`${col.color} h-full transition-all duration-500`} style={{ width: `${pct}%` }} title={`${col.label}: ${count}`}></div> : null;
-                    })}
-                </div>
-
-                {/* Kanban Columns */}
-                <div className="flex gap-3 items-start overflow-x-auto pb-4">
-                    {COLUMNS.map(col => {
-                        const colJobs = jobs.filter(j => j.status === col.key);
-                        return (
-                            <div key={col.key}
-                                className="flex-1 min-w-[220px] bg-slate-50 rounded-xl p-3 border border-slate-200/60 min-h-[400px]"
-                                onDragOver={e => e.preventDefault()}
-                                onDrop={e => drop(e, col.key)}
-                            >
-                                <h2 className="text-xs font-black tracking-widest text-slate-500 uppercase mb-3 flex justify-between items-center px-1">
-                                    <span className="flex items-center gap-1.5">{col.emoji} {col.label}</span>
-                                    <span className={`${col.color} text-white px-2 py-0.5 rounded-md text-[10px]`}>{colJobs.length}</span>
-                                </h2>
-                                <div className="space-y-2">
-                                    {colJobs.map(job => (
-                                        <div key={job.id} draggable
-                                            onDragStart={(e) => e.dataTransfer.setData("jobId", job.id)}
-                                            className="bg-white border border-slate-200 hover:border-blue-300 rounded-xl p-3 cursor-grab active:cursor-grabbing group transition-all hover:shadow-md"
-                                        >
-                                            <div className="flex justify-between items-start mb-1.5">
-                                                <h3 className="font-bold text-sm text-slate-800 truncate pr-2 group-hover:text-blue-600 transition">{job.role}</h3>
-                                                <button onClick={() => handleDelete(job.id)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition text-xs">✕</button>
-                                            </div>
-                                            <p className="text-xs font-semibold text-blue-600 mb-2">{job.company}</p>
-                                            
-                                            {/* Meta row */}
-                                            <div className="flex flex-wrap gap-1 mb-2">
-                                                {job.salary && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-bold">💰 {job.salary}</span>}
-                                                {job.source && <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold">{job.source}</span>}
-                                            </div>
-
-                                            {/* Expand button */}
-                                            <button onClick={() => setExpandedJob(expandedJob === job.id ? null : job.id)}
-                                                className="text-[10px] font-bold text-blue-500 hover:text-blue-700 transition">
-                                                {expandedJob === job.id ? "▲ Less" : "▼ Details"}
-                                            </button>
-
-                                            {expandedJob === job.id && (
-                                                <div className="mt-2 pt-2 border-t border-slate-100 space-y-2">
-                                                    {job.url && (
-                                                        <a href={job.url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline block truncate">🔗 {job.url}</a>
-                                                    )}
-                                                    {job.followUpDate && (
-                                                        <p className="text-xs text-slate-500">⏰ Follow-up: {new Date(job.followUpDate).toLocaleDateString()}</p>
-                                                    )}
-                                                    {job.notes && (
-                                                        <p className="text-xs text-slate-500 bg-slate-50 rounded-lg p-2">📝 {job.notes}</p>
-                                                    )}
-                                                    <p className="text-[10px] text-slate-400">Added: {new Date(job.createdAt || Date.now()).toLocaleDateString()}</p>
-                                                    
-                                                    {/* Quick move buttons */}
-                                                    <div className="flex flex-wrap gap-1 pt-1">
-                                                        {COLUMNS.filter(c => c.key !== col.key).map(c => (
-                                                            <button key={c.key} onClick={() => moveJob(job.id, c.key)}
-                                                                className="text-[10px] font-bold bg-slate-100 hover:bg-blue-50 text-slate-500 hover:text-blue-600 px-2 py-1 rounded transition">
-                                                                → {c.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
+            {/* Kanban Board */}
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
+                {COLUMNS.map(col => (
+                    <div key={col.id} className={`column-container min-w-[300px] flex-1 flex flex-col bg-slate-50 rounded-2xl border-t-4 border-slate-200/50 ${col.borderTop}`} data-status={col.id} onDragOver={handleDragOver} onDrop={handleDragEnd}>
+                        <div className="p-4 flex items-center justify-between">
+                            <h3 className="text-sm font-extrabold text-slate-700 flex items-center gap-2">
+                                <span>{col.icon}</span> {col.label}
+                            </h3>
+                            <span className="text-xs font-bold bg-white text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full shadow-sm">{stats.counts[col.id]}</span>
+                        </div>
+                        
+                        <div className={`flex-1 p-3 space-y-3 transition-colors ${dragActive ? 'bg-slate-100/50' : ''}`}>
+                            {jobs.filter(j => j.status === col.id).map(job => (
+                                <div key={job.id} draggable onDragStart={() => handleDragStart(job)} onDragEnd={handleDragEnd}
+                                    className="bg-white border border-slate-200/60 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-blue-300 hover:shadow-md transition group">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h4 className="font-bold text-slate-800 leading-tight">{job.company}</h4>
+                                        <button onClick={() => handleDelete(job.id)} className="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100">✕</button>
+                                    </div>
+                                    <p className="text-sm text-slate-600 font-medium mb-3">{job.role}</p>
+                                    
+                                    <div className="flex space-x-2">
+                                        <button onClick={() => toggleExpand(job.id)} className="flex-1 text-xs font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 border border-slate-200 py-1.5 rounded transition">
+                                            {expandedJob === job.id ? 'Close' : 'Details'}
+                                        </button>
+                                    </div>
+                                    
+                                    {expandedJob === job.id && (
+                                        <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-2">
+                                            {job.salary && <p><span className="font-bold">💰 Salary:</span> {job.salary}</p>}
+                                            {job.notes && <p className="italic bg-yellow-50 p-2 rounded text-yellow-800">"{job.notes}"</p>}
                                         </div>
-                                    ))}
-                                    {colJobs.length === 0 && (
-                                        <p className="text-xs text-slate-300 text-center py-8 italic">Drop jobs here</p>
                                     )}
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
             </div>
+
+            {toastMessage && (
+                <div className="fixed bottom-10 right-10 bg-slate-800 text-white font-bold px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
+                    <span>✨</span> {toastMessage}
+                </div>
+            )}
         </div>
     );
 }

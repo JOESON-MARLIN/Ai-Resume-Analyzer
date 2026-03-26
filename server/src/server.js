@@ -13,6 +13,9 @@ import { PrismaClient } from "@prisma/client";
 
 // Route imports
 import profileRoutes from "./routes/profileRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import resumeRoutes from "./routes/resumeRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
 import tailorRoutes from "./routes/tailorRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import linkedinRoutes from "./routes/linkedinRoutes.js";
@@ -67,7 +70,10 @@ app.get("/health", (_req, res) => {
 });
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
+app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/resume", resumeRoutes);
+app.use("/api/applications", applicationRoutes);
 app.use("/api/tailor", tailorRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/linkedin", linkedinRoutes);

@@ -34,21 +34,39 @@ export default function ResumeRewriter() {
     const [rewriteStyle, setRewriteStyle] = useState("metrics");
     const [results, setResults] = useState([]);
     const [selectedResults, setSelectedResults] = useState(new Set());
+    const [loading, setLoading] = useState(false);
 
-    function handleRewrite() {
-        const lines = bullets.split("\n").map(l => l.trim()).filter(l => l.length > 5);
-        if (lines.length === 0) return;
+    async function handleRewrite() {
+        if (!bullets.trim()) return;
+        setLoading(true);
 
-        const rewriteFn = REWRITE_TEMPLATES[rewriteStyle];
-        const rewritten = lines.map((original, i) => ({
-            id: i,
-            original,
-            rewritten: rewriteFn(original),
-            // Generate an alternative too
-            alt: REWRITE_TEMPLATES[rewriteStyle === "metrics" ? "impact" : "metrics"](original),
-        }));
-        setResults(rewritten);
-        setSelectedResults(new Set());
+        try {
+            const { data } = await axios.post(`${API_BASE}/api/resume/rewrite`, {
+                bullets: bullets,
+                style: rewriteStyle
+            });
+            // Assuming data.results is an array of { original, rewritten, alt }
+            const rewritten = data.results.map((item, i) => ({
+                id: i,
+                original: item.original,
+                rewritten: item.rewritten,
+                alt: item.alt,
+            }));
+            setResults(rewritten);
+            setSelectedResults(new Set());
+        } catch (error) {
+            console.error("Rewrite Error:", error);
+            // Fallback for simple error state
+            setResults([{
+                id: 0,
+                original: bullets,
+                rewritten: "Server error occurred during AI rewrite.",
+                alt: "Please ensure backend is running or check API keys."
+            }]);
+            setSelectedResults(new Set());
+        } finally {
+            setLoading(false);
+        }
     }
 
     function toggleSelect(id) {
