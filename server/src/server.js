@@ -11,9 +11,9 @@ import { Server as SocketIOServer } from "socket.io";
 import { PrismaClient } from "@prisma/client";
 
 // Route imports
-import profileRouter from "./routes/profile.js";
-import tailorRouter from "./routes/tailor.js";
-import jobRouter from "./routes/jobs.js";
+import profileRouter from "./routes/profileRoutes.js";
+import tailorRouter from "./routes/tailorRoutes.js";
+import jobRouter from "./routes/jobRoutes.js";
 
 // ─── Singleton Prisma client ──────────────────────────────────────────────────
 // Export so controllers can import without re-instantiating.
