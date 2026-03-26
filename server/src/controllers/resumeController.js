@@ -1,5 +1,6 @@
 import { parseResume, matchJob, rewriteBullets } from '../services/aiService.js';
 import pdfParse from 'pdf-parse';
+import mammoth from 'mammoth';
 
 // @desc    Parse resume from PDF file buffer or raw text to get ATS Score & JSON
 // @route   POST /api/resume/parse
@@ -10,9 +11,15 @@ export const parseResumeText = async (req, res) => {
         
         // If the user uploaded a file natively, extract it
         if (req.file) {
-            if (req.file.mimetype === 'application/pdf') {
+            const mime = req.file.mimetype;
+            const name = req.file.originalname.toLowerCase();
+
+            if (mime === 'application/pdf' || name.endsWith('.pdf')) {
                 const pdfData = await pdfParse(req.file.buffer);
                 text = pdfData.text;
+            } else if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || name.endsWith('.docx')) {
+                const docxData = await mammoth.extractRawText({ buffer: req.file.buffer });
+                text = docxData.value;
             } else {
                 // Fallback for .txt or markdown disguised
                 text = req.file.buffer.toString('utf-8');
