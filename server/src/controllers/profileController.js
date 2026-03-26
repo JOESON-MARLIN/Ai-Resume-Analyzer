@@ -1,56 +1,8 @@
 // profileController.js
-// Handles PDF upload → LLM extraction → MasterProfile save
+// Handles PDF upload → MasterProfile save (Hackathon bypasses LLM extraction)
 import fs from "fs/promises";
 import pdfParse from "pdf-parse";
-import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "../server.js";
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-const PARSE_SYSTEM_PROMPT = `
-You are a resume parser. Extract all information from the resume text and return ONLY a valid JSON object with NO markdown fences, no explanation.
-
-The JSON structure must be exactly:
-{
-  "fullName": "string",
-  "email": "string",
-  "phone": "string",
-  "location": "string",
-  "linkedinUrl": "string | null",
-  "githubUrl": "string | null",
-  "portfolioUrl": "string | null",
-  "summary": "string | null",
-  "skills": [{ "category": "string", "items": ["string"] }],
-  "experience": [{
-    "id": "unique short string like exp_1",
-    "company": "string",
-    "title": "string",
-    "startDate": "string",
-    "endDate": "string | null",
-    "isCurrent": false,
-    "location": "string",
-    "bullets": ["string"],
-    "technologies": ["string"]
-  }],
-  "education": [{
-    "institution": "string",
-    "degree": "string",
-    "field": "string",
-    "startYear": 2020,
-    "endYear": 2024,
-    "gpa": "string | null",
-    "honors": ["string"]
-  }],
-  "certifications": [{ "name": "string", "issuer": "string", "date": "string", "url": null }],
-  "projects": [{
-    "name": "string",
-    "description": "string",
-    "url": "string | null",
-    "bullets": ["string"],
-    "technologies": ["string"]
-  }]
-}
-`.trim();
 
 export async function uploadAndParseProfile(req, res) {
     if (!req.file) return res.status(400).json({ error: "No PDF file uploaded." });
@@ -66,75 +18,36 @@ export async function uploadAndParseProfile(req, res) {
         const { text: rawText } = await pdfParse(fileBuffer);
 
         if (!rawText || rawText.trim().length < 100) {
-            return res.status(422).json({ error: "PDF appears to be empty or image-only (non-parseable)." });
+            return res.status(422).json({ error: "PDF appears to be empty or image-only." });
         }
 
-        // 2. Upsert user (create if first time)
+        // 2. Upsert user
         await prisma.user.upsert({
             where: { id: userId },
             update: {},
             create: { id: userId, email: `${userId}@placeholder.local` },
         });
 
-        // 3. Create a DRAFT profile immediately so the client can poll
-        const draft = await prisma.masterProfile.upsert({
+        // 3. Hackathon shortcut: Save raw text directly as COMPLETE, skip LLM structured parse
+        const profile = await prisma.masterProfile.upsert({
             where: { userId },
-            update: { status: "DRAFT", rawText, originalFileName: req.file.originalname },
-            create: { userId, status: "DRAFT", rawText, originalFileName: req.file.originalname },
+            update: { status: "COMPLETE", rawText, originalFileName: req.file.originalname },
+            create: { userId, status: "COMPLETE", rawText, originalFileName: req.file.originalname },
         });
 
-        // Respond fast — parsing happens async
-        res.status(202).json({
-            profileId: draft.id,
-            message: "PDF received. Parsing in progress.",
+        // Respond immediately
+        res.status(200).json({
+            profileId: profile.id,
+            status: "COMPLETE",
+            message: "Resume saved! Proceeding to dashboard.",
+            fullName: userId
         });
 
-        // 4. Call LLM to extract structured JSON
-        const response = await anthropic.messages.create({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 4096,
-            system: PARSE_SYSTEM_PROMPT,
-            messages: [{ role: "user", content: `RESUME TEXT:\n\n${rawText}` }],
-        });
-
-        const raw = response.content
-            .filter((b) => b.type === "text")
-            .map((b) => b.text)
-            .join("");
-
-        const clean = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-        const parsed = JSON.parse(clean);
-
-        // 5. Persist structured profile
-        await prisma.masterProfile.update({
-            where: { userId },
-            data: {
-                status: "COMPLETE",
-                fullName: parsed.fullName ?? null,
-                email: parsed.email ?? null,
-                phone: parsed.phone ?? null,
-                location: parsed.location ?? null,
-                linkedinUrl: parsed.linkedinUrl ?? null,
-                githubUrl: parsed.githubUrl ?? null,
-                portfolioUrl: parsed.portfolioUrl ?? null,
-                summary: parsed.summary ?? null,
-                skills: parsed.skills ?? [],
-                experience: parsed.experience ?? [],
-                education: parsed.education ?? [],
-                certifications: parsed.certifications ?? [],
-                projects: parsed.projects ?? [],
-            },
-        });
-
-        console.log(`[Profile] Parsed OK userId=${userId}`);
+        console.log(`[Profile] Saved OK userId=${userId}`);
     } catch (err) {
-        console.error("[Profile] Parse error:", err);
-        // Mark profile as failed so UI can show error
-        await prisma.masterProfile
-            .update({ where: { userId }, data: { status: "DRAFT" } })
-            .catch(() => { });
+        console.error("[Profile] Save error:", err);
+        res.status(500).json({ error: err.message });
     } finally {
-        // Always clean up the temp upload
         await fs.unlink(filePath).catch(() => { });
     }
 }

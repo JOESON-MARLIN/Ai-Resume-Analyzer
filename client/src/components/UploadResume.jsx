@@ -1,45 +1,15 @@
 // client/src/components/UploadResume.jsx
 import { useState, useRef } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
-export default function UploadResume({ userId, onProfileReady }) {
-    const [phase, setPhase] = useState("idle"); // idle | uploading | polling | done | error
+export default function UploadResume({ userId }) {
+    const navigate = useNavigate();
+    const [phase, setPhase] = useState("idle"); // idle | uploading | error
     const [message, setMessage] = useState("");
     const fileInputRef = useRef(null);
-    const pollRef = useRef(null);
-
-    function startPolling(uid) {
-        setPhase("polling");
-        setMessage("Parsing your resume with AI…");
-
-        pollRef.current = setInterval(async () => {
-            try {
-                const { data } = await axios.get(`${API_BASE}/api/profile/${uid}`);
-                if (data.status === "COMPLETE") {
-                    clearInterval(pollRef.current);
-                    setPhase("done");
-                    setMessage(`✓ Profile ready — welcome, ${data.fullName ?? uid}!`);
-                    onProfileReady?.(data);
-                }
-            } catch {
-                // not found yet — keep polling
-            }
-        }, 2500);
-
-        // Safety timeout: 2 minutes
-        setTimeout(() => {
-            clearInterval(pollRef.current);
-            setPhase((prev) => {
-                if (prev !== "done") {
-                    setMessage("Parsing timed out. Please try uploading again.");
-                    return "error";
-                }
-                return prev;
-            });
-        }, 120_000);
-    }
 
     async function handleFileChange(e) {
         const file = e.target.files?.[0];
@@ -67,41 +37,51 @@ export default function UploadResume({ userId, onProfileReady }) {
             await axios.post(`${API_BASE}/api/profile/upload`, form, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-            startPolling(userId);
+            // Hackathon bypass: parsing is instant, go straight to dashboard
+            navigate("/dashboard");
         } catch (err) {
             setPhase("error");
             setMessage(err.response?.data?.error ?? "Upload failed. Please try again.");
         }
     }
 
-    const isLoading = phase === "uploading" || phase === "polling";
+    const isLoading = phase === "uploading";
 
     return (
-        <div className="mx-auto max-w-md rounded-2xl border border-slate-700 bg-slate-800/60 p-8 text-center backdrop-blur-sm">
+        <div className="mx-auto max-w-md rounded-2xl border border-slate-700 bg-slate-800/60 p-8 text-center backdrop-blur-sm mt-20">
             <div className="mb-4 text-5xl">📄</div>
             <h2 className="mb-1 text-lg font-bold text-white">Upload Your Resume</h2>
             <p className="mb-6 text-sm text-slate-400">
                 PDF only · max 5 MB · parsed once, tailored forever
             </p>
 
-            {/* Drop zone button */}
+            {phase === "error" && (
+                <div className="mb-4 rounded-lg bg-rose-500/10 p-3 text-sm text-rose-400 border border-rose-500/20">
+                    {message}
+                </div>
+            )}
+
             <button
                 onClick={() => !isLoading && fileInputRef.current?.click()}
-                disabled={isLoading || phase === "done"}
+                disabled={isLoading}
                 className={[
-                    "mb-4 w-full rounded-xl border-2 border-dashed px-6 py-8 text-sm transition-all duration-200",
-                    phase === "done"
-                        ? "cursor-default border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
-                        : isLoading
-                            ? "cursor-wait border-slate-600 text-slate-500"
-                            : "cursor-pointer border-slate-600 text-slate-400 hover:border-violet-500 hover:bg-violet-500/5 hover:text-violet-300",
+                    "mb-4 w-full flex justify-center items-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 text-sm transition-all duration-200",
+                    isLoading
+                        ? "cursor-wait border-slate-600 text-slate-500"
+                        : "cursor-pointer border-slate-600 text-slate-400 hover:border-violet-500 hover:bg-violet-500/5 hover:text-violet-300",
                 ].join(" ")}
             >
-                {phase === "done"
-                    ? "✓ Resume parsed successfully"
-                    : isLoading
-                        ? "Processing…"
-                        : "Click to choose a PDF — or drag & drop"}
+                {isLoading ? (
+                    <>
+                        <svg className="h-5 w-5 animate-spin text-violet-500" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                    </>
+                ) : (
+                    "Click to choose a PDF — or drag & drop"
+                )}
             </button>
 
             <input
@@ -111,37 +91,6 @@ export default function UploadResume({ userId, onProfileReady }) {
                 onChange={handleFileChange}
                 className="hidden"
             />
-
-            {/* Status message */}
-            {message && (
-                <p
-                    className={[
-                        "mt-3 flex items-center justify-center gap-2 text-sm",
-                        phase === "error" ? "text-rose-400" : "",
-                        phase === "done" ? "text-emerald-400" : "",
-                        isLoading ? "text-cyan-400" : "",
-                    ].join(" ")}
-                >
-                    {isLoading && (
-                        <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                    )}
-                    {message}
-                </p>
-            )}
-
-            {/* Re-upload option */}
-            {phase === "done" && (
-                <button
-                    onClick={() => {
-                        setPhase("idle");
-                        setMessage("");
-                        fileInputRef.current?.click();
-                    }}
-                    className="mt-4 text-xs text-slate-500 underline hover:text-slate-300"
-                >
-                    Upload a different resume
-                </button>
-            )}
         </div>
     );
 }

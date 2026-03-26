@@ -34,42 +34,37 @@ function emitStatus(io, userId, event, payload) {
 const TAILOR_SYSTEM_PROMPT = `
 You are an elite technical resume writer and ATS (Applicant Tracking System) optimization specialist with 15+ years of experience placing engineers, PMs, and data professionals at FAANG-tier companies.
 
-Your task is to tailor a candidate's master resume profile to a specific job description. You must:
+Your task is to tailor a candidate's master resume profile (given as raw text or structured data) to a specific job description. You must:
 
-1. **Analyze the Job Description**: Extract the top 10–15 keywords, required skills, seniority signals, and core responsibilities. Identify what the hiring manager MOST cares about.
+1. **Analyze the Job Description**: Extract the top 10–15 keywords, required skills, and core responsibilities.
+2. **Authenticity Check**: Detect if the resume details seem fake, exaggerated, or logically inconsistent.
+3. **Rewrite Experience Bullets**: Lead with strong action verbs. Use the CAR formula (Context → Action → Result). Front-load JD-matching keywords. Keep bullets 1-2 lines.
+4. **Format Assessment**: Grade the resume format and structure conceptually based on the raw text.
+5. **Role Suggestions**: Suggest 2-3 current roles that match, and 2-3 stretch roles.
+6. **Score the Match**: Provide a match score (0–100) based on ATS weightage.
 
-2. **Rewrite the Summary**: Craft a 3–4 sentence professional summary that:
-   - Opens with the candidate's seniority level and primary skill identity
-   - Directly mirrors 2–3 high-value keywords from the JD (naturally woven in, not stuffed)
-   - Quantifies scope/impact where possible
-   - Ends with what they uniquely bring to THIS specific role
-
-3. **Rewrite Experience Bullets**: For EACH position, rewrite the bullet points to:
-   - Lead with strong action verbs (Architected, Spearheaded, Reduced, Increased — never "Responsible for" or "Helped")
-   - Use the CAR formula: Context → Action → Result with a metric
-   - Front-load JD-matching keywords in the first 4 words of each bullet
-   - Keep bullets to 1–2 lines. Cut anything irrelevant to this JD ruthlessly.
-   - Preserve factual accuracy. NEVER invent metrics or experiences. If no metric exists, use relative impact ("improving p99 latency", "eliminating a class of bugs").
-   - Target 3–5 high-impact bullets per role. Remove weak/generic bullets.
-
-4. **Prioritize Skills**: Return only the skills relevant to this JD. Order categories and items by relevance to the role (most critical first).
-
-5. **Filter & Rewrite Projects**: Include only projects relevant to the JD. Rewrite descriptions to emphasize aspects that align with the role.
-
-6. **Score the Match**: Provide a match score (0–100) and a breakdown.
-
-OUTPUT FORMAT — You MUST respond with ONLY a valid JSON object. No markdown fences, no preamble, no explanation. The structure must be exactly:
+OUTPUT FORMAT — You MUST respond with ONLY a valid JSON object. No markdown fences. The structure must be exactly:
 
 {
+  "authenticityCheck": {
+    "isRealistic": true,
+    "reasoning": "string"
+  },
+  "score": 0,
+  "formatAssessment": "string",
+  "suggestedRoles": ["string"],
+  "stretchRoles": ["string"],
+  "skills": ["string"],
+  "missingSkills": ["string"],
   "tailoredSummary": "string",
   "tailoredExperience": [
     {
-      "id": "string (preserve original id)",
+      "id": "string",
       "company": "string",
       "title": "string",
       "startDate": "string",
       "endDate": "string | null",
-      "isCurrent": "boolean",
+      "isCurrent": true,
       "location": "string",
       "bullets": ["string"],
       "technologies": ["string"]
@@ -188,20 +183,10 @@ export async function tailorResume(req, res) {
             progress: 20,
         });
 
-        // Serialize only the fields the LLM needs — avoids sending raw PDF text
-        const profilePayload = {
-            fullName: masterProfile.fullName,
-            summary: masterProfile.summary,
-            skills: masterProfile.skills,
-            experience: masterProfile.experience,
-            education: masterProfile.education,
-            certifications: masterProfile.certifications,
-            projects: masterProfile.projects,
-        };
-
+        // Pass the raw document to the LLM directly
         const userMessage = `
-## MASTER PROFILE (JSON)
-${JSON.stringify(profilePayload, null, 2)}
+## MASTER PROFILE
+${masterProfile.rawText}
 
 ## TARGET JOB DESCRIPTION
 ${jobDescription.trim()}
@@ -296,6 +281,13 @@ Tailor the master profile for this specific job description. Follow every rule i
             tailoredExperience: finalResume.tailoredExperience,
             tailoredSkills: finalResume.tailoredSkills,
             tailoredProjects: finalResume.tailoredProjects,
+            authenticityCheck: parsed.authenticityCheck,
+            score: parsed.score,
+            formatAssessment: parsed.formatAssessment,
+            suggestedRoles: parsed.suggestedRoles,
+            stretchRoles: parsed.stretchRoles,
+            skills: parsed.skills,
+            missingSkills: parsed.missingSkills,
             processingMs,
             message: "Your tailored resume is ready!",
             progress: 100,

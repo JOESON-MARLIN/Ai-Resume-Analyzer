@@ -7,6 +7,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -164,6 +165,7 @@ function ExperienceSection({ experience = [] }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function TailorDashboard({ userId }) {
+    const navigate = useNavigate();
     // ── Form state ──────────────────────────────────────────────────────────────
     const [jobDescription, setJobDescription] = useState("");
     const [jobTitle, setJobTitle] = useState("");
@@ -215,9 +217,8 @@ export default function TailorDashboard({ userId }) {
         // ── Completion ───────────────────────────────────────────────────────────
         socket.on("tailor:complete", (data) => {
             setProgress(100);
-            setStatusMessage("Your tailored resume is ready!");
-            setResult(data);
-            setPhase("done");
+            setStatusMessage("Redirecting to your results...");
+            navigate("/results", { state: { result: data } });
         });
 
         // ── Error ────────────────────────────────────────────────────────────────
@@ -238,7 +239,7 @@ export default function TailorDashboard({ userId }) {
             socket.disconnect();
             socketRef.current = null;
         };
-    }, [userId]);
+    }, [userId, navigate]);
 
     // ─── Submit handler ───────────────────────────────────────────────────────────
     const handleTailor = useCallback(async () => {
