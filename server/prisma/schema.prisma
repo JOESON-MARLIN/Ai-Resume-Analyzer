@@ -1,0 +1,227 @@
+// schema.prisma
+// Career Copilot — PostgreSQL via Prisma ORM
+// Run: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum TailorStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ProfileStatus {
+  DRAFT
+  PARSED
+  COMPLETE
+}
+
+// ─────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String?
+  avatarUrl      String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  // Relations
+  masterProfile  MasterProfile?
+  jobPostings    JobPosting[]
+  tailoredResumes TailoredResume[]
+
+  @@index([email])
+}
+
+// ─────────────────────────────────────────────
+// MASTER PROFILE
+// Parsed once from uploaded PDF; source-of-truth
+// for all tailoring operations.
+// ─────────────────────────────────────────────
+
+model MasterProfile {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  status          ProfileStatus @default(DRAFT)
+
+  // Raw extracted text from PDF (preserved for re-parsing)
+  rawText         String        @db.Text
+
+  // Top-level structured fields
+  fullName        String?
+  email           String?
+  phone           String?
+  location        String?
+  linkedinUrl     String?
+  githubUrl       String?
+  portfolioUrl    String?
+  summary         String?       @db.Text
+
+  // Rich structured data stored as JSON arrays/objects
+  // Shape documented inline — validated in application layer.
+  skills          Json          @default("[]")
+  // [{ category: "Languages", items: ["TypeScript", "Python"] }]
+
+  experience      Json          @default("[]")
+  // [{
+  //   id: string,
+  //   company: string,
+  //   title: string,
+  //   startDate: string,
+  //   endDate: string | null,
+  //   isCurrent: boolean,
+  //   location: string,
+  //   bullets: string[],
+  //   technologies: string[]
+  // }]
+
+  education       Json          @default("[]")
+  // [{
+  //   institution: string,
+  //   degree: string,
+  //   field: string,
+  //   startYear: number,
+  //   endYear: number | null,
+  //   gpa: string | null,
+  //   honors: string[]
+  // }]
+
+  certifications  Json          @default("[]")
+  // [{ name: string, issuer: string, date: string, url: string | null }]
+
+  projects        Json          @default("[]")
+  // [{
+  //   name: string,
+  //   description: string,
+  //   url: string | null,
+  //   bullets: string[],
+  //   technologies: string[]
+  // }]
+
+  // Upload metadata
+  originalFileName String?
+  uploadedFileKey  String?       // S3 / storage key
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tailoredResumes TailoredResume[]
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// JOB POSTING
+// Stores the raw JD and LLM-extracted metadata
+// ─────────────────────────────────────────────
+
+model JobPosting {
+  id              String    @id @default(cuid())
+  userId          String
+
+  // User-supplied
+  rawDescription  String    @db.Text
+  jobTitle        String?
+  company         String?
+  jobUrl          String?
+  location        String?
+  salaryRange     String?
+
+  // LLM-extracted metadata (populated async after save)
+  extractedData   Json?
+  // {
+  //   requiredSkills: string[],
+  //   preferredSkills: string[],
+  //   responsibilities: string[],
+  //   seniorityLevel: string,
+  //   employmentType: string,
+  //   keywords: string[]
+  // }
+
+  notes           String?   @db.Text
+  isArchived      Boolean   @default(false)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tailoredResumes TailoredResume[]
+
+  @@index([userId])
+  @@index([userId, isArchived])
+}
+
+// ─────────────────────────────────────────────
+// TAILORED RESUME
+// Output of the 1-Click Tailor workflow.
+// Stores the diff from master + full tailored snapshot.
+// ─────────────────────────────────────────────
+
+model TailoredResume {
+  id              String        @id @default(cuid())
+  userId          String
+  masterProfileId String
+  jobPostingId    String
+
+  status          TailorStatus  @default(PENDING)
+  version         Int           @default(1)   // incremented on re-tailor
+
+  // AI-rewritten sections (mirrors MasterProfile JSON shapes)
+  tailoredSummary String?       @db.Text
+  tailoredExperience Json?
+  // Same shape as MasterProfile.experience — bullets rewritten for JD
+
+  tailoredSkills  Json?
+  // Reordered/filtered skills prioritized for this JD
+
+  tailoredProjects Json?
+  // Same shape as MasterProfile.projects — filtered/rewritten
+
+  // Match scoring
+  matchScore      Int?          // 0–100 relevance score vs JD
+  scoreBreakdown  Json?
+  // { skills: number, experience: number, keywords: number }
+
+  // Keywords from JD that were successfully woven in
+  keywordsMatched Json          @default("[]")  // string[]
+  keywordsMissed  Json          @default("[]")  // string[]
+
+  // LLM metadata — for cost tracking and debugging
+  modelUsed       String?
+  promptTokens    Int?
+  completionTokens Int?
+  processingMs    Int?
+
+  errorMessage    String?       @db.Text
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  masterProfile   MasterProfile @relation(fields: [masterProfileId], references: [id], onDelete: Cascade)
+  jobPosting      JobPosting    @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([masterProfileId])
+  @@index([jobPostingId])
+}
