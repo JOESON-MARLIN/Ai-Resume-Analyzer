@@ -2,11 +2,17 @@
 import { Router } from "express";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { uploadAndParseProfile, getProfile } from "../controllers/profileController.js";
+
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Store uploads in /uploads with original extension preserved
 const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, "uploads/"),
+    destination: (_req, _file, cb) => cb(null, uploadDir),
     filename: (_req, file, cb) => {
         const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
         cb(null, `${unique}${path.extname(file.originalname)}`);
