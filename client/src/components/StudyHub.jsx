@@ -5,7 +5,8 @@ const DOMAINS = [
         id: "swe", 
         name: "DSA & System Design", 
         description: "Master data structures, algorithms, and architecture thinking.",
-        gradient: "from-blue-500 to-cyan-400",
+        gradient: "from-blue-500 to-blue-300",
+        icon: "💻",
         tracks: "3 Tracks",
         sets: "24 Mock Cases",
         cases: [
@@ -16,9 +17,10 @@ const DOMAINS = [
     },
     { 
         id: "ai", 
-        name: "AI Hub", 
+        name: "AI & ML Hub", 
         description: "Prepare for AI/ML and Data Science interviews in one focused workspace.",
-        gradient: "from-violet-400 to-purple-400",
+        gradient: "from-blue-600 to-blue-300",
+        icon: "🧠",
         tracks: "2 Tracks",
         sets: "14 Mock Cases",
         cases: [
@@ -28,9 +30,10 @@ const DOMAINS = [
     },
     { 
         id: "pm", 
-        name: "Product & Management Hub", 
+        name: "Product & Management", 
         description: "Prepare PM and behavioral rounds with structured frameworks.",
-        gradient: "from-orange-400 to-rose-400",
+        gradient: "from-blue-500 to-blue-400",
+        icon: "📊",
         tracks: "1 Track",
         sets: "12 Mock Cases",
         cases: [
@@ -43,55 +46,47 @@ const DOMAINS = [
 export default function StudyHub() {
     const [activeHub, setActiveHub] = useState(null);
 
-    const handleBack = () => setActiveHub(null);
-
     if (activeHub) {
         return (
-            <div className="text-white max-w-6xl mx-auto space-y-10 animate-in fade-in">
-                <button onClick={handleBack} className="text-[#8598b9] hover:text-white transition flex items-center gap-2 mb-8">
+            <div className="max-w-6xl mx-auto space-y-8 pb-10 animate-in fade-in">
+                <button onClick={() => setActiveHub(null)} className="text-slate-400 hover:text-slate-800 transition flex items-center gap-2 text-sm font-bold mb-2">
                     <span>←</span> Back to Hubs
                 </button>
 
-                <header className="mb-12">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${activeHub.gradient} shadow-lg shadow-white/5`}></div>
-                        <h1 className="text-3xl font-bold tracking-tight">{activeHub.name}</h1>
+                <header className={`bg-gradient-to-br ${activeHub.gradient} rounded-3xl p-10 text-white relative overflow-hidden group shadow-xl`}>
+                    <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl translate-x-16 -translate-y-16 group-hover:scale-125 transition-transform duration-700"></div>
+                    <div className="relative z-10 flex items-center gap-4">
+                        <span className="text-5xl drop-shadow-md">{activeHub.icon}</span>
+                        <div>
+                            <h1 className="text-3xl font-extrabold tracking-tight drop-shadow-md">{activeHub.name}</h1>
+                            <p className="text-white/80 font-medium mt-1">{activeHub.description}</p>
+                        </div>
                     </div>
-                    <p className="text-[#8598b9] max-w-2xl font-sans">{activeHub.description}</p>
+                    <div className="relative z-10 flex gap-3 mt-6">
+                        <span className="bg-white/15 backdrop-blur text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/20">{activeHub.tracks}</span>
+                        <span className="bg-white/15 backdrop-blur text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/20">{activeHub.sets}</span>
+                    </div>
                 </header>
 
                 <section>
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-lg font-bold text-white">Interview Cases & Concepts</h2>
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs font-bold text-[#5a6b8a] uppercase tracking-widest bg-[#131823] px-3 py-1.5 rounded-lg border border-[#1e2330]">
-                                {activeHub.tracks}
-                            </span>
-                            <span className="text-xs font-bold text-[#5a6b8a] uppercase tracking-widest bg-[#131823] px-3 py-1.5 rounded-lg border border-[#1e2330]">
-                                {activeHub.sets}
-                            </span>
-                        </div>
-                    </div>
-
+                    <h2 className="text-lg font-extrabold text-slate-800 mb-5">Interview Cases & Concepts</h2>
                     <div className="space-y-4">
                         {activeHub.cases.map((c, i) => (
-                            <div key={i} className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#131823] border border-[#1e2330] rounded-xl p-6 hover:border-[#5a6b8a] transition cursor-pointer group">
+                            <div key={i} className="flex flex-col md:flex-row md:items-center justify-between gap-5 bg-white border border-slate-200/60 rounded-2xl p-6 hover:border-blue-300 hover:shadow-lg transition-all cursor-pointer group">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition">{c.title}</h3>
-                                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
-                                            c.difficulty === 'Hard' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                                        <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition">{c.title}</h3>
+                                        <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border ${
+                                            c.difficulty === 'Hard' ? 'text-blue-600 bg-blue-50 border-blue-200' : 'text-blue-600 bg-blue-50 border-blue-200'
                                         }`}>{c.difficulty}</span>
                                     </div>
-                                    <p className="text-sm text-[#8598b9]">
-                                        <strong className="text-slate-300">Key Trade-offs:</strong> {c.tradeoffs}
+                                    <p className="text-sm text-slate-500">
+                                        <strong className="text-slate-600">Key Trade-offs:</strong> {c.tradeoffs}
                                     </p>
                                 </div>
-                                <div className="flex md:flex-col gap-3">
-                                    <button className="bg-[#0B0E14] border border-[#1e2330] hover:border-blue-500/50 hover:bg-blue-500/10 transition px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 w-full md:w-32">
-                                        Solve
-                                    </button>
-                                </div>
+                                <button className={`bg-gradient-to-r ${activeHub.gradient} text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl transition-all shrink-0`}>
+                                    Start →
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -101,52 +96,53 @@ export default function StudyHub() {
     }
 
     return (
-        <div className="text-white max-w-6xl mx-auto space-y-10 animate-in fade-in">
-            <header className="mb-12">
-                <h1 className="text-3xl font-bold tracking-tight mb-2">Choose Your Prep Hub</h1>
-                <p className="text-[#8598b9] max-w-2xl font-sans">
-                    Pick one focused domain to reduce noise and follow a clear interview path with questions, mocks, AI coach, and revision in one place.
-                </p>
+        <div className="max-w-6xl mx-auto space-y-10 pb-10 animate-in fade-in">
+            {/* Hero */}
+            <header className="bg-gradient-to-br from-blue-500 to-blue-400 rounded-3xl p-10 text-white relative overflow-hidden group shadow-xl shadow-blue-500/20">
+                <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-x-20 -translate-y-20 group-hover:scale-125 transition-transform duration-700"></div>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-3">
+                        <span className="text-4xl">📚</span>
+                        <h1 className="text-3xl font-extrabold tracking-tight">Study Hubs</h1>
+                    </div>
+                    <p className="text-white/80 text-lg font-medium max-w-2xl">Pick a focused domain. Follow a clear path with questions, mocks, and concepts all in one place.</p>
+                </div>
             </header>
 
             <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {DOMAINS.map(domain => {
-                    return (
-                        <div
-                            key={domain.id}
-                            onClick={() => setActiveHub(domain)}
-                            className="flex flex-col rounded-2xl border border-[#1e2330] bg-[#0B0E14] overflow-hidden hover:border-[#5a6b8a] hover:shadow-xl transition duration-300 group cursor-pointer"
-                        >
-                            {/* colored top half */}
-                            <div className={`h-40 bg-gradient-to-br ${domain.gradient} opacity-90 p-6 relative overflow-hidden`}>
-                                <h2 className="text-2xl font-bold text-slate-900 mb-2">{domain.name}</h2>
-                                <p className="text-sm text-slate-900/80 font-medium max-w-[85%]">{domain.description}</p>
-                                {/* Abstract geometric accent */}
-                                <div className="absolute right-0 bottom-0 w-32 h-32 bg-white/20 rounded-full blur-2xl translate-x-10 translate-y-10 group-hover:scale-110 transition-transform"></div>
-                            </div>
-
-                            {/* dark bottom half */}
-                            <div className="p-6 bg-[#131823] flex-1 flex flex-col justify-between space-y-6">
-                                <div>
-                                    <div className="flex gap-4 mb-4">
-                                        <div className="flex-1 bg-[#0B0E14] border border-[#1e2330] rounded-lg p-3 text-center text-xs font-semibold text-slate-300">
-                                            {domain.tracks}
-                                        </div>
-                                        <div className="flex-1 bg-[#0B0E14] border border-[#1e2330] rounded-lg p-3 text-center text-xs font-semibold text-slate-300">
-                                            {domain.sets}
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-[#5a6b8a] uppercase font-bold tracking-widest">{domain.cases.length} Focus areas inside</p>
-                                </div>
-
-                                <button className="w-full flex justify-between items-center bg-[#0B0E14] border border-[#1e2330] group-hover:border-blue-500/50 group-hover:text-white transition rounded-xl p-4 text-sm font-semibold text-slate-300">
-                                    <span>Open {domain.name}</span>
-                                    <span>→</span>
-                                </button>
-                            </div>
+                {DOMAINS.map(domain => (
+                    <div
+                        key={domain.id}
+                        onClick={() => setActiveHub(domain)}
+                        className="flex flex-col rounded-3xl border border-slate-200/60 bg-white overflow-hidden hover:shadow-2xl hover:border-transparent transition-all duration-300 group cursor-pointer"
+                    >
+                        {/* Gradient top */}
+                        <div className={`h-40 bg-gradient-to-br ${domain.gradient} p-6 relative overflow-hidden`}>
+                            <div className="absolute right-4 top-4 text-5xl opacity-30 group-hover:opacity-60 transition-opacity duration-500">{domain.icon}</div>
+                            <div className="absolute right-0 bottom-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 translate-y-10 group-hover:scale-110 transition-transform"></div>
+                            <h2 className="text-2xl font-extrabold text-white drop-shadow-md mb-2">{domain.name}</h2>
+                            <p className="text-sm text-white/80 font-medium max-w-[85%]">{domain.description}</p>
                         </div>
-                    );
-                })}
+
+                        {/* Stats bottom */}
+                        <div className="p-6 flex-1 flex flex-col justify-between space-y-5">
+                            <div className="flex gap-3">
+                                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-center text-xs font-bold text-slate-600">
+                                    {domain.tracks}
+                                </div>
+                                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-3 text-center text-xs font-bold text-slate-600">
+                                    {domain.sets}
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">{domain.cases.length} focus areas inside</p>
+
+                            <button className="w-full flex justify-between items-center bg-slate-50 border border-slate-200 group-hover:border-blue-300 group-hover:bg-blue-50 transition rounded-xl p-4 text-sm font-bold text-slate-600 group-hover:text-blue-700">
+                                <span>Open {domain.name}</span>
+                                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                            </button>
+                        </div>
+                    </div>
+                ))}
             </section>
         </div>
     );

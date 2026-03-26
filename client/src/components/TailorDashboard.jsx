@@ -28,18 +28,18 @@ function ProgressStepper({ currentStep, progress, message }) {
     const currentIdx = STEPS.findIndex((s) => s.key === currentStep);
 
     return (
-        <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-6 backdrop-blur-sm">
+        <div className="rounded-2xl border border-slate-200/60 bg-white/60 p-6 backdrop-blur-sm">
             {/* Progress bar */}
             <div className="mb-5 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
                 <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-700 ease-out"
+                    className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-500/5 transition-all duration-700 ease-out"
                     style={{ width: `${progress}%` }}
                 />
             </div>
 
             {/* Status message */}
-            <p className="mb-5 flex items-center gap-2 text-sm font-medium text-cyan-400">
-                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
+            <p className="mb-5 flex items-center gap-2 text-sm font-medium text-blue-600">
+                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
                 {message}
             </p>
 
@@ -54,8 +54,8 @@ function ProgressStepper({ currentStep, progress, message }) {
                             <span
                                 className={[
                                     "flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold transition-all duration-300",
-                                    done ? "border-violet-500 bg-violet-500 text-white" : "",
-                                    active ? "border-cyan-400 bg-cyan-400/10 text-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.5)]" : "",
+                                    done ? "border-blue-500 bg-blue-500 text-black" : "",
+                                    active ? "border-blue-400 bg-blue-400/10 text-blue-600 shadow-[0_0_8px_rgba(34,211,238,0.5)]" : "",
                                     pending ? "border-slate-600 text-slate-600" : "",
                                 ].join(" ")}
                             >
@@ -64,8 +64,8 @@ function ProgressStepper({ currentStep, progress, message }) {
                             <span
                                 className={[
                                     "transition-colors duration-300",
-                                    done ? "text-slate-400 line-through" : "",
-                                    active ? "font-semibold text-white" : "",
+                                    done ? "text-slate-600 line-through" : "",
+                                    active ? "font-semibold text-black" : "",
                                     pending ? "text-slate-600" : "",
                                 ].join(" ")}
                             >
@@ -81,9 +81,9 @@ function ProgressStepper({ currentStep, progress, message }) {
 
 function ScoreBadge({ score }) {
     const color =
-        score >= 80 ? "text-emerald-400 border-emerald-500/40 bg-emerald-500/10"
-            : score >= 60 ? "text-amber-400 border-amber-500/40 bg-amber-500/10"
-                : "text-rose-400 border-rose-500/40 bg-rose-500/10";
+        score >= 80 ? "text-blue-600 border-blue-500/40 bg-blue-500/10"
+            : score >= 60 ? "text-blue-600 border-blue-500/40 bg-blue-500/10"
+                : "text-blue-600 border-blue-500/40 bg-blue-500/10";
 
     return (
         <div className={`inline-flex flex-col items-center rounded-2xl border px-6 py-4 ${color}`}>
@@ -97,12 +97,12 @@ function KeywordPills({ matched = [], missed = [] }) {
     return (
         <div className="space-y-3">
             <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-emerald-400">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-blue-600">
                     Keywords Matched ({matched.length})
                 </p>
                 <div className="flex flex-wrap gap-2">
                     {matched.map((kw) => (
-                        <span key={kw} className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/30">
+                        <span key={kw} className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30">
                             {kw}
                         </span>
                     ))}
@@ -111,12 +111,12 @@ function KeywordPills({ matched = [], missed = [] }) {
             </div>
 
             <div>
-                <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-rose-400">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-blue-600">
                     Keywords Missed ({missed.length})
                 </p>
                 <div className="flex flex-wrap gap-2">
                     {missed.map((kw) => (
-                        <span key={kw} className="rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-300 ring-1 ring-rose-500/30">
+                        <span key={kw} className="rounded-full bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-300 ring-1 ring-blue-500/30">
                             {kw}
                         </span>
                     ))}
@@ -131,11 +131,11 @@ function ExperienceSection({ experience = [] }) {
     return (
         <div className="space-y-6">
             {experience.map((role) => (
-                <div key={role.id} className="rounded-xl border border-slate-700 bg-slate-800/40 p-5">
+                <div key={role.id} className="rounded-xl border border-slate-200/60 bg-white/40 p-5">
                     <div className="mb-3 flex items-start justify-between gap-4">
                         <div>
-                            <h4 className="font-semibold text-white">{role.title}</h4>
-                            <p className="text-sm text-slate-400">{role.company} · {role.location}</p>
+                            <h4 className="font-semibold text-black">{role.title}</h4>
+                            <p className="text-sm text-slate-600">{role.company} · {role.location}</p>
                         </div>
                         <span className="shrink-0 text-xs text-slate-500">
                             {role.startDate} — {role.isCurrent ? "Present" : role.endDate}
@@ -143,8 +143,8 @@ function ExperienceSection({ experience = [] }) {
                     </div>
                     <ul className="space-y-1.5">
                         {role.bullets.map((b, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-slate-300">
-                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400" />
+                            <li key={i} className="flex gap-2 text-sm text-slate-700">
+                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
                                 {b}
                             </li>
                         ))}
@@ -152,7 +152,7 @@ function ExperienceSection({ experience = [] }) {
                     {role.technologies?.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-1.5">
                             {role.technologies.map((t) => (
-                                <span key={t} className="rounded bg-slate-700 px-2 py-0.5 text-xs text-slate-400">{t}</span>
+                                <span key={t} className="rounded bg-slate-700 px-2 py-0.5 text-xs text-slate-600">{t}</span>
                             ))}
                         </div>
                     )}
@@ -274,15 +274,15 @@ export default function TailorDashboard({ userId }) {
     // RENDER
     // ─────────────────────────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-slate-950 p-6 font-['IBM_Plex_Mono',_monospace] text-slate-100">
+        <div className="min-h-screen bg-slate-50 p-6 font-['IBM_Plex_Mono',_monospace] text-slate-100">
             {/* ── Header ────────────────────────────────────────────────────────── */}
             <header className="mx-auto mb-10 max-w-5xl">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-cyan-500 text-lg font-black text-white shadow-lg shadow-violet-500/20">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-blue-500/5 text-lg font-black text-black shadow-lg shadow-blue-500/20">
                         ⚡
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight text-white">Career Copilot</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-black">Career Copilot</h1>
                         <p className="text-xs text-slate-500">1-Click Resume Tailor</p>
                     </div>
                 </div>
@@ -295,7 +295,7 @@ export default function TailorDashboard({ userId }) {
                     {/* Job meta */}
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div>
-                            <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-600">
                                 Job Title
                             </label>
                             <input
@@ -304,11 +304,11 @@ export default function TailorDashboard({ userId }) {
                                 onChange={(e) => setJobTitle(e.target.value)}
                                 placeholder="Senior Software Engineer"
                                 disabled={phase === "processing"}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 disabled:opacity-50"
+                                className="w-full rounded-xl border border-slate-200/60 bg-white px-4 py-2.5 text-sm text-black placeholder-slate-600 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
                             />
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-600">
                                 Company
                             </label>
                             <input
@@ -317,16 +317,16 @@ export default function TailorDashboard({ userId }) {
                                 onChange={(e) => setCompany(e.target.value)}
                                 placeholder="Acme Corp"
                                 disabled={phase === "processing"}
-                                className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 disabled:opacity-50"
+                                className="w-full rounded-xl border border-slate-200/60 bg-white px-4 py-2.5 text-sm text-black placeholder-slate-600 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
                             />
                         </div>
                     </div>
 
                     {/* JD textarea */}
                     <div>
-                        <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-slate-600">
                             Job Description
-                            <span className={`ml-2 font-normal ${jobDescription.length < 50 ? "text-rose-500" : "text-emerald-500"}`}>
+                            <span className={`ml-2 font-normal ${jobDescription.length < 50 ? "text-blue-500" : "text-blue-500"}`}>
                                 ({jobDescription.length} chars{jobDescription.length < 50 ? " — min 50" : " ✓"})
                             </span>
                         </label>
@@ -336,7 +336,7 @@ export default function TailorDashboard({ userId }) {
                             placeholder="Paste the full job description here…"
                             disabled={phase === "processing"}
                             rows={16}
-                            className="w-full resize-none rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm leading-relaxed text-white placeholder-slate-600 outline-none transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 disabled:opacity-50"
+                            className="w-full resize-none rounded-xl border border-slate-200/60 bg-white px-4 py-3 text-sm leading-relaxed text-black placeholder-slate-600 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50"
                         />
                     </div>
 
@@ -344,7 +344,7 @@ export default function TailorDashboard({ userId }) {
                     <button
                         onClick={handleTailor}
                         disabled={!canSubmit}
-                        className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-500/20 transition-all duration-300 hover:shadow-violet-500/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                        className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-700 to-blue-500/5 px-6 py-3.5 text-sm font-bold text-black shadow-lg shadow-blue-500/20 transition-all duration-300 hover:shadow-blue-500/40 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {phase === "processing" ? (
                             <span className="flex items-center justify-center gap-2">
@@ -358,7 +358,7 @@ export default function TailorDashboard({ userId }) {
 
                     {/* Error banner */}
                     {phase === "error" && (
-                        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+                        <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 text-sm text-blue-300">
                             <strong className="block font-semibold">Tailoring failed</strong>
                             {errorMessage}
                         </div>
@@ -380,15 +380,15 @@ export default function TailorDashboard({ userId }) {
                     {phase === "done" && result && (
                         <div className="space-y-5">
                             {/* Score + keywords */}
-                            <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-5 backdrop-blur-sm">
+                            <div className="rounded-2xl border border-slate-200/60 bg-white/60 p-5 backdrop-blur-sm">
                                 <div className="mb-4 flex items-center justify-between gap-4">
                                     <ScoreBadge score={result.matchScore ?? 0} />
                                     {result.scoreBreakdown && (
                                         <div className="grid flex-1 gap-1 text-right text-xs">
                                             {Object.entries(result.scoreBreakdown).map(([k, v]) => (
-                                                <div key={k} className="flex justify-between gap-2 text-slate-400">
+                                                <div key={k} className="flex justify-between gap-2 text-slate-600">
                                                     <span className="capitalize">{k}</span>
-                                                    <span className="font-semibold text-slate-200">{v}</span>
+                                                    <span className="font-semibold text-slate-800">{v}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -401,9 +401,9 @@ export default function TailorDashboard({ userId }) {
                             </div>
 
                             {/* Tailored content tabs */}
-                            <div className="rounded-2xl border border-slate-700 bg-slate-800/60 backdrop-blur-sm">
+                            <div className="rounded-2xl border border-slate-200/60 bg-white/60 backdrop-blur-sm">
                                 {/* Tab bar */}
-                                <div className="flex border-b border-slate-700">
+                                <div className="flex border-b border-slate-200/60">
                                     {["summary", "experience", "skills"].map((tab) => (
                                         <button
                                             key={tab}
@@ -411,8 +411,8 @@ export default function TailorDashboard({ userId }) {
                                             className={[
                                                 "flex-1 py-3 text-xs font-semibold uppercase tracking-widest transition-colors",
                                                 activeTab === tab
-                                                    ? "border-b-2 border-violet-500 text-violet-400"
-                                                    : "text-slate-500 hover:text-slate-300",
+                                                    ? "border-b-2 border-blue-500 text-blue-400"
+                                                    : "text-slate-500 hover:text-slate-700",
                                             ].join(" ")}
                                         >
                                             {tab}
@@ -423,7 +423,7 @@ export default function TailorDashboard({ userId }) {
                                 {/* Tab content */}
                                 <div className="p-5">
                                     {activeTab === "summary" && (
-                                        <p className="text-sm leading-relaxed text-slate-300">
+                                        <p className="text-sm leading-relaxed text-slate-700">
                                             {result.tailoredSummary ?? "No summary generated."}
                                         </p>
                                     )}
@@ -436,14 +436,14 @@ export default function TailorDashboard({ userId }) {
                                         <div className="space-y-3">
                                             {(result.tailoredSkills ?? []).map((group) => (
                                                 <div key={group.category}>
-                                                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-slate-400">
+                                                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-slate-600">
                                                         {group.category}
                                                     </p>
                                                     <div className="flex flex-wrap gap-1.5">
                                                         {group.items.map((skill) => (
                                                             <span
                                                                 key={skill}
-                                                                className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs text-slate-300 ring-1 ring-slate-600"
+                                                                className="rounded-lg bg-slate-700 px-2.5 py-1 text-xs text-slate-700 ring-1 ring-slate-600"
                                                             >
                                                                 {skill}
                                                             </span>
@@ -460,9 +460,9 @@ export default function TailorDashboard({ userId }) {
 
                     {/* Idle placeholder */}
                     {phase === "idle" && (
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-800/30 p-10 text-center">
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200/60 bg-white/30 p-10 text-center">
                             <div className="mb-3 text-4xl">🎯</div>
-                            <p className="text-sm font-medium text-slate-400">
+                            <p className="text-sm font-medium text-slate-600">
                                 Paste a job description and click Tailor to see your personalized resume score and rewritten bullets.
                             </p>
                         </div>

@@ -7,31 +7,25 @@ export default function Sidebar() {
         { path: "/dashboard", label: "Dashboard", icon: "🏠" },
         { path: "/search", label: "Job Search", icon: "🔍" },
         { path: "/jobs", label: "Job Tracker", icon: "📋" },
-        { path: "/study", label: "Hubs", icon: "📚" },
-        { path: "/resume", label: "Resume Analyzer", icon: "📄" },
+        { path: "/study", label: "Study Hubs", icon: "📚" },
+        { path: "/resume", label: "Resume Engine", icon: "📄" },
         { path: "/linkedin", label: "LinkedIn Optimizer", icon: "💼" },
         { path: "/profile", label: "My Profile", icon: "👤" },
         { path: "/settings", label: "Settings", icon: "⚙️" },
     ];
 
     return (
-        <aside className="fixed inset-y-0 left-0 w-64 bg-[#0B0E14] border-r border-[#1e2330] flex flex-col font-sans">
+        <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-blue-100 flex flex-col font-sans shadow-lg z-50">
             {/* Logo */}
-            <div className="flex flex-col pb-6 pt-8 px-6 border-b border-[#1e2330]">
-                {/* Fallback to text styling that perfectly matches their logo if the image isn't saved yet */}
-                <div className="flex items-center gap-px">
-                    <h1 className="text-[26px] font-black tracking-tight text-[#004a7c]">
-                        Career<span className="text-[#f26522]">Craft</span>
-                    </h1>
-                </div>
-                <div className="flex items-center justify-center mt-0.5">
-                    <span className="text-[#f26522] font-black tracking-[0.25em] text-[11px] opacity-90">— AI —</span>
-                </div>
+            <div className="flex items-center gap-2.5 px-6 py-6 border-b border-blue-100">
+                <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md">CC</div>
+                <h1 className="text-xl font-black tracking-tight text-slate-800">
+                    Career<span className="text-blue-600">Craft</span>
+                </h1>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-                <p className="px-4 text-[10px] font-bold tracking-widest text-[#5a6b8a] uppercase mb-4">Learn</p>
+            <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
                 {links.map((link) => {
                     const isActive = location.pathname.startsWith(link.path);
                     return (
@@ -39,19 +33,18 @@ export default function Sidebar() {
                             key={link.path}
                             to={link.path}
                             className={[
-                                "flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200",
-                                isActive 
-                                    ? "bg-[#181f2d] text-white" 
-                                    : "text-[#8598b9] hover:bg-[#131823] hover:text-white"
+                                "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition-all duration-200",
+                                isActive
+                                    ? "bg-blue-50 text-blue-700 border-l-[3px] border-blue-600"
+                                    : "text-slate-500 hover:bg-blue-50/50 hover:text-blue-700"
                             ].join(" ")}
                         >
-                            <span className={isActive ? "text-blue-500" : "text-[#5a6b8a]"}>{link.icon}</span>
+                            <span className="text-base">{link.icon}</span>
                             {link.label}
                         </Link>
                     );
                 })}
             </nav>
-
         </aside>
     );
 }
