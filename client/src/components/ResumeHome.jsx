@@ -11,7 +11,7 @@ export default function ResumeHome() {
 
                 <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3 relative z-10 drop-shadow-md">Resume Engine</h1>
                 <p className="text-white/80 font-medium text-lg max-w-2xl mx-auto relative z-10">
-                    Build, optimize, and score your resume for any role
+                    Build, analyze, and optimize your resume for any role
                 </p>
 
                 <div className="flex justify-center gap-4 mt-8 relative z-10">
@@ -27,72 +27,56 @@ export default function ResumeHome() {
             {/* Choose Your Path Section */}
             <section>
                 <div className="text-center mb-10">
-                    <h2 className="text-2xl font-extrabold text-slate-800 mb-2">Choose Your Path</h2>
-                    <p className="text-slate-500">Select your preferred tool</p>
+                    <h2 className="text-2xl font-extrabold text-slate-800 mb-2">Choose Your Tool</h2>
+                    <p className="text-slate-500">Select the tool that fits your needs</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
 
-                    {/* Path 1: Resume Builder */}
+                    {/* Resume Builder */}
                     <Link to="/resume/builder" className="block group">
-                        <div className="bg-white border border-slate-200/60 rounded-2xl p-8 hover:border-blue-400 transition-all duration-300 transform group-hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden h-full flex flex-col">
-                            <div className="absolute top-4 right-4 bg-blue-50 text-blue-600 text-xs font-bold px-3 py-1 rounded-full border border-blue-200">
-                                New
-                            </div>
-
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20">
-                                    📄
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition">Resume Builder</h3>
-                            </div>
-
-                            <p className="text-sm text-slate-500 mb-8 font-medium leading-relaxed">
-                                Enter your target job title and get role-specific skills, improvement tips, curated resources, and ATS-optimized templates.
+                        <div className="bg-white border border-slate-200/60 rounded-2xl p-7 hover:border-blue-400 transition-all duration-300 transform group-hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden h-full flex flex-col">
+                            <div className="absolute top-4 right-4 bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-200">Builder</div>
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20 mb-4">📄</div>
+                            <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition mb-2">Resume Builder</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed mb-4 flex-1">
+                                Enter a job title, get role-specific skills, templates, and improvement tips.
                             </p>
-
-                            <div className="mt-auto">
-                                <h4 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">How it works:</h4>
-                                <ul className="space-y-2.5">
-                                    {["Enter your target job title", "Get skills, tips & resources for the role", "Choose an ATS-optimized template"].map((step, i) => (
-                                        <li key={i} className="flex items-start gap-3 text-sm text-slate-600">
-                                            <div className="w-5 h-5 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 text-xs font-bold shrink-0 mt-0.5">{i + 1}</div>
-                                            {step}
-                                        </li>
-                                    ))}
-                                </ul>
+                            <div className="flex justify-between items-center text-sm font-bold text-blue-600 py-3 px-4 bg-blue-50 rounded-xl">
+                                <span>Build Resume</span>
+                                <span className="group-hover:translate-x-1 transition-transform">→</span>
                             </div>
                         </div>
                     </Link>
 
-                    {/* Path 2: ATS Checker */}
-                    <Link to="/resume/ats-checker" className="block group">
-                        <div className="bg-white border border-slate-200/60 rounded-2xl p-8 hover:border-blue-400 transition-all duration-300 transform group-hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden h-full flex flex-col">
-                            <div className="absolute top-4 right-4 bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold px-3 py-1 rounded-full">
-                                Free Tool
-                            </div>
-
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20">
-                                    ✓
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-600 transition">ATS Match Checker</h3>
-                            </div>
-
-                            <p className="text-sm text-slate-500 mb-8 font-medium leading-relaxed">
-                                Instantly score your resume against any job posting. Identifies exact keyword gaps recruiters look for.
+                    {/* Resume Analyzer */}
+                    <Link to="/resume/analyzer" className="block group">
+                        <div className="bg-white border border-slate-200/60 rounded-2xl p-7 hover:border-blue-400 transition-all duration-300 transform group-hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden h-full flex flex-col">
+                            <div className="absolute top-4 right-4 bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-200">New</div>
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20 mb-4">🔬</div>
+                            <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition mb-2">Resume Analyzer</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed mb-4 flex-1">
+                                Upload your resume, get scored, see job matches, and get suggestions to improve.
                             </p>
+                            <div className="flex justify-between items-center text-sm font-bold text-blue-600 py-3 px-4 bg-blue-50 rounded-xl">
+                                <span>Analyze Resume</span>
+                                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                            </div>
+                        </div>
+                    </Link>
 
-                            <div className="mt-auto">
-                                <h4 className="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">How it works:</h4>
-                                <ul className="space-y-2.5">
-                                    {["Paste Job Description Text", "Paste Resume Text", "See keyword overlaps and missing skills"].map((step, i) => (
-                                        <li key={i} className="flex items-start gap-3 text-sm text-slate-600">
-                                            <div className="w-5 h-5 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 text-xs font-bold shrink-0 mt-0.5">{i + 1}</div>
-                                            {step}
-                                        </li>
-                                    ))}
-                                </ul>
+                    {/* ATS Checker */}
+                    <Link to="/resume/ats-checker" className="block group">
+                        <div className="bg-white border border-slate-200/60 rounded-2xl p-7 hover:border-blue-400 transition-all duration-300 transform group-hover:-translate-y-1 hover:shadow-2xl relative overflow-hidden h-full flex flex-col">
+                            <div className="absolute top-4 right-4 bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-200">Free</div>
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center text-white text-xl shadow-lg shadow-blue-500/20 mb-4">✓</div>
+                            <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition mb-2">ATS Checker</h3>
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed mb-4 flex-1">
+                                Score your resume against a job description. Find missing keywords instantly.
+                            </p>
+                            <div className="flex justify-between items-center text-sm font-bold text-blue-600 py-3 px-4 bg-blue-50 rounded-xl">
+                                <span>Check ATS Score</span>
+                                <span className="group-hover:translate-x-1 transition-transform">→</span>
                             </div>
                         </div>
                     </Link>
