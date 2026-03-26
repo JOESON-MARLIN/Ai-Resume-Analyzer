@@ -35,8 +35,8 @@ const httpServer = http.createServer(app);
 // req.app.get("io") without circular imports.
 const io = new SocketIOServer(httpServer, {
     cors: {
-        origin: process.env.FRONTEND_URL ?? "http://localhost:5173",
-        methods: ["GET", "POST"],
+        origin: [process.env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174"].filter(Boolean),
+        methods: ["GET", "POST", "PATCH", "DELETE"],
         credentials: true,
     },
     // Use long-polling as fallback for proxies that don't support WebSockets
@@ -48,7 +48,7 @@ app.set("io", io);
 // ─── Global Middleware ────────────────────────────────────────────────────────
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL ?? "http://localhost:5173",
+        origin: [process.env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174"].filter(Boolean),
         credentials: true,
     })
 );
