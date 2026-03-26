@@ -248,10 +248,10 @@ export default function ResumeAnalyzer() {
 
                 <button
                     onClick={handleAnalyze}
-                    disabled={!resumeText.trim()}
+                    disabled={(!resumeText.trim() && !selectedFile) || analyzing}
                     className="w-full mt-4 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white py-4 rounded-xl font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-blue-500/20"
                 >
-                    {analysis ? "🔄 Re-Analyze Resume" : "🔬 Analyze My Resume"}
+                    {analyzing ? "⌛ Analyzing Resume..." : analysis ? "🔄 Re-Analyze Resume" : "🔬 Analyze My Resume"}
                 </button>
             </div>
 
