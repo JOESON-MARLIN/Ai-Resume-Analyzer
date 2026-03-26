@@ -34,9 +34,7 @@ const httpServer = http.createServer(app);
 // The io instance is attached to the app so route handlers can reach it via
 // req.app.get("io") without circular imports.
 const io = new SocketIOServer(httpServer, {
-    cors: {
-        origin: [process.env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174"].filter(Boolean),
-        methods: ["GET", "POST", "PATCH", "DELETE"],
+        origin: [process.env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174", "https://ai-resume-analyzer-smoky-one.vercel.app"].filter(Boolean),
         credentials: true,
     },
     // Use long-polling as fallback for proxies that don't support WebSockets
@@ -46,9 +44,8 @@ const io = new SocketIOServer(httpServer, {
 app.set("io", io);
 
 // ─── Global Middleware ────────────────────────────────────────────────────────
-app.use(
     cors({
-        origin: [process.env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174"].filter(Boolean),
+        origin: [process.env.FRONTEND_URL, "http://localhost:5173", "http://localhost:5174", "https://ai-resume-analyzer-smoky-one.vercel.app"].filter(Boolean),
         credentials: true,
     })
 );

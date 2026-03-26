@@ -115,8 +115,10 @@ function analyzeResume(text) {
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function ResumeAnalyzer() {
     const [resumeText, setResumeText] = useState("");
+    const [selectedFile, setSelectedFile] = useState(null);
     const [fileName, setFileName] = useState("");
     const [analysis, setAnalysis] = useState(null);
+    const [analyzing, setAnalyzing] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
     const [selectedJob, setSelectedJob] = useState(null);
     const fileRef = useRef(null);
@@ -126,24 +128,39 @@ export default function ResumeAnalyzer() {
         const file = e.target.files?.[0];
         if (!file) return;
         setFileName(file.name);
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            setResumeText(ev.target.result);
-        };
-        reader.readAsText(file);
+        setSelectedFile(file);
+        setResumeText(""); // clear manual text so file takes precedence
     }
 
     async function handleAnalyze() {
-        if (!resumeText.trim()) return;
+        if (!resumeText.trim() && !selectedFile) return;
         setAnalyzing(true);
         setAnalysis(null);
         setSelectedJob(null);
 
         try {
-            const { data } = await axios.post(`${API_BASE}/api/resume/parse`, {
-                text: resumeText
-            });
+            let config = { headers: {} };
+            let payload;
+
+            if (selectedFile) {
+                // Send raw binary file to backend for extraction
+                payload = new FormData();
+                payload.append('file', selectedFile);
+                config.headers['Content-Type'] = 'multipart/form-data';
+            } else {
+                // Send manual text string
+                payload = { text: resumeText };
+            }
+
+            const { data } = await axios.post(`${API_BASE}/api/resume/parse`, payload, config);
             const result = data.analysis;
+            const extracted = data.textExtracted;
+            
+            // Re-hydrate the textarea with the beautiful extracted text!
+            if (extracted) {
+                setResumeText(extracted);
+                setSelectedFile(null); // Clear file so next time it runs off the text box natively
+            }
             
             // Re-shape backend response if needed to match frontend expectations
             const frontEndAnalysis = {
