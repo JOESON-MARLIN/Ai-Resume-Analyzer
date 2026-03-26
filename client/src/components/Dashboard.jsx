@@ -40,22 +40,11 @@ export default function Dashboard() {
         <div className="text-white max-w-6xl mx-auto space-y-12">
             <header className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Good evening, Guest</h1>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2">Good evening, Hacker</h1>
                     <p className="text-slate-400 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                         Ready to practice and improve your career toolkit?
                     </p>
-                </div>
-                <div className="flex gap-3">
-                    <button className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-500/20 transition">
-                        <span>⭐</span> Starter
-                    </button>
-                    <button className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-700 transition">
-                        <span>👑</span> Upgrade
-                    </button>
-                    <button className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-700 transition">
-                        <span>👤</span> Profile
-                    </button>
                 </div>
             </header>
 

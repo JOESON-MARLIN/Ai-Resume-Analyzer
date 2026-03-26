@@ -14,11 +14,16 @@ export default function Sidebar() {
     return (
         <aside className="fixed inset-y-0 left-0 w-64 bg-[#0B0E14] border-r border-[#1e2330] flex flex-col font-sans">
             {/* Logo */}
-            <div className="flex items-center gap-3 p-6 border-b border-[#1e2330]">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-500/20">
-                    t
+            <div className="flex flex-col pb-6 pt-8 px-6 border-b border-[#1e2330]">
+                {/* Fallback to text styling that perfectly matches their logo if the image isn't saved yet */}
+                <div className="flex items-center gap-px">
+                    <h1 className="text-[26px] font-black tracking-tight text-[#004a7c]">
+                        Career<span className="text-[#f26522]">Craft</span>
+                    </h1>
                 </div>
-                <h1 className="text-lg font-bold tracking-tight text-white">thita.ai</h1>
+                <div className="flex items-center justify-center mt-0.5">
+                    <span className="text-[#f26522] font-black tracking-[0.25em] text-[11px] opacity-90">— AI —</span>
+                </div>
             </div>
 
             {/* Navigation */}
@@ -44,13 +49,6 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Bottom Help Area */}
-            <div className="p-4 border-[#1e2330]">
-                <div className="rounded-xl border border-amber-500/10 p-4 text-center hover:bg-[#131823] transition cursor-pointer">
-                    <p className="text-xs text-[#8598b9]">Help us improve Thita<br/>(30 sec)</p>
-                    <p className="text-xs font-bold text-amber-500 mt-1">+10 coins</p>
-                </div>
-            </div>
         </aside>
     );
 }
