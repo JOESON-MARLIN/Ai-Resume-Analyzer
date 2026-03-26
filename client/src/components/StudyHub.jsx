@@ -1,126 +1,153 @@
 import { useState } from "react";
 
 const DOMAINS = [
-    { id: "swe", name: "Software Engineering", icon: "💻", color: "from-blue-500 to-cyan-400" },
-    { id: "pm", name: "Product Management", icon: "📊", color: "from-violet-500 to-purple-400" },
-    { id: "data", name: "Data Science", icon: "📈", color: "from-emerald-500 to-teal-400" },
-    { id: "ai", name: "AI / Machine Learning", icon: "🤖", color: "from-rose-500 to-orange-400" }
-];
-
-const COMPANIES = [
-    { name: "Google", topics: ["Algorithms", "Googliness", "System Design at Scale"] },
-    { name: "Meta", topics: ["Execution Speed", "Product Sense", "React Internals"] },
-    { name: "Amazon", topics: ["Leadership Principles", "Object Oriented Design", "AWS Architecture"] }
-];
-
-const CASE_STUDIES = [
-    {
-        title: "Design Netflix",
-        domain: "swe",
-        difficulty: "Hard",
-        description: "Architect a global video streaming platform with low latency and high availability.",
-        tradeoffs: "SQL vs NoSQL for metadata, CDN distribution strategies, handling the Thundering Herd problem."
+    { 
+        id: "swe", 
+        name: "DSA & System Design", 
+        description: "Master data structures, algorithms, and architecture thinking.",
+        gradient: "from-blue-500 to-cyan-400",
+        tracks: "3 Tracks",
+        sets: "24 Mock Cases",
+        cases: [
+            { title: "Design Netflix", difficulty: "Hard", tradeoffs: "SQL vs NoSQL for metadata, CDN distribution strategies, handling the Thundering Herd problem." },
+            { title: "Design Uber", difficulty: "Hard", tradeoffs: "WebSockets vs Long Polling, Geospatial indexing (QuadTrees vs GeoHashes)." },
+            { title: "Two Pointer Approach", difficulty: "Medium", tradeoffs: "O(N) time complexity vs O(N^2) naive approach. In-place modification." }
+        ]
     },
-    {
-        title: "Design Uber",
-        domain: "swe",
-        difficulty: "Hard",
-        description: "Design a ride-sharing service handling real-time location tracking and matching.",
-        tradeoffs: "WebSockets vs Long Polling, Geospatial indexing (QuadTrees vs GeoHashes)."
+    { 
+        id: "ai", 
+        name: "AI Hub", 
+        description: "Prepare for AI/ML and Data Science interviews in one focused workspace.",
+        gradient: "from-violet-400 to-purple-400",
+        tracks: "2 Tracks",
+        sets: "14 Mock Cases",
+        cases: [
+            { title: "Recommendation Engine", difficulty: "Hard", tradeoffs: "Collaborative Filtering vs Content-Based, Matrix Factorization, Cold Start Problem." },
+            { title: "Fraud Detection at Scale", difficulty: "Medium", tradeoffs: "Random Forest vs Neural Networks, Class Imbalance (SMOTE), Real-time feature streaming." }
+        ]
     },
-    {
-        title: "A/B Testing Framework",
-        domain: "pm",
-        difficulty: "Medium",
-        description: "Design an internal experimentation platform for tracking feature rollouts.",
-        tradeoffs: "Statistical significance thresholds, identifying cannibalization, segment bucketing."
+    { 
+        id: "pm", 
+        name: "Product & Management Hub", 
+        description: "Prepare PM and behavioral rounds with structured frameworks.",
+        gradient: "from-orange-400 to-rose-400",
+        tracks: "1 Track",
+        sets: "12 Mock Cases",
+        cases: [
+            { title: "A/B Testing Framework", difficulty: "Medium", tradeoffs: "Statistical significance thresholds, identifying cannibalization, segment bucketing." },
+            { title: "Prioritizing the Roadmap", difficulty: "Medium", tradeoffs: "RICE scoring vs Kano Model, Engineering bandwidth constraints." }
+        ]
     }
 ];
 
 export default function StudyHub() {
-    const [activeDomain, setActiveDomain] = useState("swe");
+    const [activeHub, setActiveHub] = useState(null);
 
-    const filteredCases = CASE_STUDIES.filter(c => c.domain === activeDomain);
+    const handleBack = () => setActiveHub(null);
 
-    return (
-        <div className="text-white max-w-6xl mx-auto space-y-10">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight mb-2">Study Hub</h1>
-                <p className="text-slate-400">Multi-domain interview preparation and system design practice.</p>
-            </header>
+    if (activeHub) {
+        return (
+            <div className="text-white max-w-6xl mx-auto space-y-10 animate-in fade-in">
+                <button onClick={handleBack} className="text-[#8598b9] hover:text-white transition flex items-center gap-2 mb-8">
+                    <span>←</span> Back to Hubs
+                </button>
 
-            {/* DOMAIN SELECTOR */}
-            <section>
-                <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-4">Select Track</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {DOMAINS.map(domain => {
-                        const isActive = activeDomain === domain.id;
-                        return (
-                            <button
-                                key={domain.id}
-                                onClick={() => setActiveDomain(domain.id)}
-                                className={[
-                                    "p-6 text-left rounded-2xl border transition-all duration-300 relative overflow-hidden group",
-                                    isActive ? "bg-slate-800 border-slate-600 shadow-xl" : "bg-slate-900 border-slate-800 hover:border-slate-700"
-                                ].join(" ")}
-                            >
-                                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${domain.color} opacity-10 blur-3xl rounded-full translate-x-10 -translate-y-10 group-hover:opacity-20 transition-opacity`}></div>
-                                <div className="text-3xl mb-3">{domain.icon}</div>
-                                <h3 className="font-bold relative z-10">{domain.name}</h3>
-                            </button>
-                        );
-                    })}
-                </div>
-            </section>
-
-            <div className="grid md:grid-cols-[1fr_300px] gap-8">
-                {/* SYSTEM DESIGN CASES */}
-                <section>
-                    <div className="flex justify-between items-end mb-4">
-                        <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500">System Design Cases</h2>
+                <header className="mb-12">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${activeHub.gradient} shadow-lg shadow-white/5`}></div>
+                        <h1 className="text-3xl font-bold tracking-tight">{activeHub.name}</h1>
                     </div>
-                    <div className="space-y-4">
-                        {filteredCases.map(c => (
-                            <div key={c.title} className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-violet-500/50 transition cursor-pointer group">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-bold group-hover:text-violet-400 transition">{c.title}</h3>
-                                    <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800 text-amber-400 border border-amber-500/20">{c.difficulty}</span>
-                                </div>
-                                <p className="text-sm text-slate-400 mb-4">{c.description}</p>
-                                <div className="bg-slate-950 rounded-lg p-3 border border-slate-800">
-                                    <p className="text-xs font-semibold text-slate-500 mb-1">KEY TRADE-OFFS</p>
-                                    <p className="text-xs text-slate-300">{c.tradeoffs}</p>
-                                </div>
-                            </div>
-                        ))}
-                        {filteredCases.length === 0 && (
-                            <div className="text-center p-10 border border-dashed border-slate-800 rounded-xl text-slate-500">
-                                More cases coming soon for {DOMAINS.find(d => d.id === activeDomain).name}!
-                            </div>
-                        )}
-                    </div>
-                </section>
+                    <p className="text-[#8598b9] max-w-2xl font-sans">{activeHub.description}</p>
+                </header>
 
-                {/* TARGET COMPANIES */}
                 <section>
-                    <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-4">Target Intel</h2>
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-lg font-bold text-white">Interview Cases & Concepts</h2>
+                        <div className="flex items-center gap-3">
+                            <span className="text-xs font-bold text-[#5a6b8a] uppercase tracking-widest bg-[#131823] px-3 py-1.5 rounded-lg border border-[#1e2330]">
+                                {activeHub.tracks}
+                            </span>
+                            <span className="text-xs font-bold text-[#5a6b8a] uppercase tracking-widest bg-[#131823] px-3 py-1.5 rounded-lg border border-[#1e2330]">
+                                {activeHub.sets}
+                            </span>
+                        </div>
+                    </div>
+
                     <div className="space-y-4">
-                        {COMPANIES.map(company => (
-                            <div key={company.name} className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-                                <h3 className="font-bold mb-3">{company.name}</h3>
-                                <ul className="space-y-2">
-                                    {company.topics.map(topic => (
-                                        <li key={topic} className="flex gap-2 text-xs text-slate-400 items-start">
-                                            <span className="text-emerald-400 mt-0.5">▪</span>
-                                            {topic}
-                                        </li>
-                                    ))}
-                                </ul>
+                        {activeHub.cases.map((c, i) => (
+                            <div key={i} className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#131823] border border-[#1e2330] rounded-xl p-6 hover:border-[#5a6b8a] transition cursor-pointer group">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition">{c.title}</h3>
+                                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                                            c.difficulty === 'Hard' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                                        }`}>{c.difficulty}</span>
+                                    </div>
+                                    <p className="text-sm text-[#8598b9]">
+                                        <strong className="text-slate-300">Key Trade-offs:</strong> {c.tradeoffs}
+                                    </p>
+                                </div>
+                                <div className="flex md:flex-col gap-3">
+                                    <button className="bg-[#0B0E14] border border-[#1e2330] hover:border-blue-500/50 hover:bg-blue-500/10 transition px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 w-full md:w-32">
+                                        Solve
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </section>
             </div>
+        );
+    }
+
+    return (
+        <div className="text-white max-w-6xl mx-auto space-y-10 animate-in fade-in">
+            <header className="mb-12">
+                <h1 className="text-3xl font-bold tracking-tight mb-2">Choose Your Prep Hub</h1>
+                <p className="text-[#8598b9] max-w-2xl font-sans">
+                    Pick one focused domain to reduce noise and follow a clear interview path with questions, mocks, AI coach, and revision in one place.
+                </p>
+            </header>
+
+            <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {DOMAINS.map(domain => {
+                    return (
+                        <div
+                            key={domain.id}
+                            onClick={() => setActiveHub(domain)}
+                            className="flex flex-col rounded-2xl border border-[#1e2330] bg-[#0B0E14] overflow-hidden hover:border-[#5a6b8a] hover:shadow-xl transition duration-300 group cursor-pointer"
+                        >
+                            {/* colored top half */}
+                            <div className={`h-40 bg-gradient-to-br ${domain.gradient} opacity-90 p-6 relative overflow-hidden`}>
+                                <h2 className="text-2xl font-bold text-slate-900 mb-2">{domain.name}</h2>
+                                <p className="text-sm text-slate-900/80 font-medium max-w-[85%]">{domain.description}</p>
+                                {/* Abstract geometric accent */}
+                                <div className="absolute right-0 bottom-0 w-32 h-32 bg-white/20 rounded-full blur-2xl translate-x-10 translate-y-10 group-hover:scale-110 transition-transform"></div>
+                            </div>
+
+                            {/* dark bottom half */}
+                            <div className="p-6 bg-[#131823] flex-1 flex flex-col justify-between space-y-6">
+                                <div>
+                                    <div className="flex gap-4 mb-4">
+                                        <div className="flex-1 bg-[#0B0E14] border border-[#1e2330] rounded-lg p-3 text-center text-xs font-semibold text-slate-300">
+                                            {domain.tracks}
+                                        </div>
+                                        <div className="flex-1 bg-[#0B0E14] border border-[#1e2330] rounded-lg p-3 text-center text-xs font-semibold text-slate-300">
+                                            {domain.sets}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-[#5a6b8a] uppercase font-bold tracking-widest">{domain.cases.length} Focus areas inside</p>
+                                </div>
+
+                                <button className="w-full flex justify-between items-center bg-[#0B0E14] border border-[#1e2330] group-hover:border-blue-500/50 group-hover:text-white transition rounded-xl p-4 text-sm font-semibold text-slate-300">
+                                    <span>Open {domain.name}</span>
+                                    <span>→</span>
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+            </section>
         </div>
     );
 }

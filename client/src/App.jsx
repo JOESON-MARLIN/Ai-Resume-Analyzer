@@ -8,6 +8,7 @@ import StudyHub from "./components/StudyHub.jsx";
 import LinkedInOptimizer from "./components/LinkedInOptimizer.jsx";
 import ResumeHome from "./components/ResumeHome.jsx";
 import AtsChecker from "./components/AtsChecker.jsx";
+import Dashboard from "./components/Dashboard.jsx";
 
 // Hardcoded userId for now
 const MOCK_USER_ID = "user_dev_001";
@@ -21,7 +22,7 @@ export default function App() {
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 
                 {/* Dashboard & Jobs */}
-                <Route path="/dashboard" element={<div className="text-white text-2xl font-bold">Welcome to Career Copilot V2</div>} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/jobs" element={<JobBoard />} />
                 
                 {/* Resume Engine Hub */}

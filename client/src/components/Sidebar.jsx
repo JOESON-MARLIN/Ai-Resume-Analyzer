@@ -5,24 +5,25 @@ export default function Sidebar() {
 
     const links = [
         { path: "/dashboard", label: "Dashboard", icon: "🏠" },
+        { path: "/study", label: "Hubs", icon: "📚" },
         { path: "/jobs", label: "Job Tracker", icon: "📋" },
-        { path: "/resume", label: "Resume Engine", icon: "📄" },
+        { path: "/resume", label: "Resume Analyzer", icon: "📄" },
         { path: "/linkedin", label: "LinkedIn Optimizer", icon: "💼" },
-        { path: "/study", label: "Study Hub", icon: "📚" },
     ];
 
     return (
-        <aside className="fixed inset-y-0 left-0 w-64 bg-slate-900 border-r border-slate-800 flex flex-col font-['IBM_Plex_Mono',_monospace]">
+        <aside className="fixed inset-y-0 left-0 w-64 bg-[#0B0E14] border-r border-[#1e2330] flex flex-col font-sans">
             {/* Logo */}
-            <div className="flex items-center gap-3 p-6 border-b border-slate-800">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-cyan-500 text-sm font-black text-white shadow-lg shadow-violet-500/20">
-                    ⚡
+            <div className="flex items-center gap-3 p-6 border-b border-[#1e2330]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-black text-white shadow-lg shadow-blue-500/20">
+                    t
                 </div>
-                <h1 className="text-lg font-bold tracking-tight text-white">Career Copilot</h1>
+                <h1 className="text-lg font-bold tracking-tight text-white">thita.ai</h1>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+            <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                <p className="px-4 text-[10px] font-bold tracking-widest text-[#5a6b8a] uppercase mb-4">Learn</p>
                 {links.map((link) => {
                     const isActive = location.pathname.startsWith(link.path);
                     return (
@@ -30,27 +31,24 @@ export default function Sidebar() {
                             key={link.path}
                             to={link.path}
                             className={[
-                                "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200",
+                                "flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200",
                                 isActive 
-                                    ? "bg-violet-500/10 text-violet-400 border border-violet-500/20" 
-                                    : "text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent"
+                                    ? "bg-[#181f2d] text-white" 
+                                    : "text-[#8598b9] hover:bg-[#131823] hover:text-white"
                             ].join(" ")}
                         >
-                            <span>{link.icon}</span>
+                            <span className={isActive ? "text-blue-500" : "text-[#5a6b8a]"}>{link.icon}</span>
                             {link.label}
                         </Link>
                     );
                 })}
             </nav>
 
-            {/* User Profile Hook */}
-            <div className="p-4 border-t border-slate-800">
-                <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-800 text-sm text-slate-300">
-                    <div className="h-8 w-8 rounded-full bg-slate-700"></div>
-                    <div>
-                        <p className="font-semibold text-white">Guest User</p>
-                        <p className="text-xs text-slate-500">MOCK_USER_ID</p>
-                    </div>
+            {/* Bottom Help Area */}
+            <div className="p-4 border-[#1e2330]">
+                <div className="rounded-xl border border-amber-500/10 p-4 text-center hover:bg-[#131823] transition cursor-pointer">
+                    <p className="text-xs text-[#8598b9]">Help us improve Thita<br/>(30 sec)</p>
+                    <p className="text-xs font-bold text-amber-500 mt-1">+10 coins</p>
                 </div>
             </div>
         </aside>
