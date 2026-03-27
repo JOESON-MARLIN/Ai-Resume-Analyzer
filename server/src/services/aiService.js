@@ -1,126 +1,93 @@
-import { GoogleGenAI } from "@google/genai";
+// aiService.js
+// Completely local, deterministic fallback scanning engine that requires 0 API keys.
+// Guarantees 100% uptime for presentations and demos.
 
-const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY
-});
-
-// Utility to clean up markdown code block formatting responses
-const cleanJsonOutput = (text) => {
-    return text.replace(/```json\n/g, '').replace(/```\n/g, '').replace(/```/g, '').trim();
-};
-
-/**
- * AI Parsing: Takes raw resume text and extracts structured JSON.
- */
 export const parseResume = async (resumeText) => {
-    const prompt = `
-        You are an expert ATS (Applicant Tracking System) and senior technical recruiter.
-        Analyze the following resume text.
-        
-        Resume Text:
-        """${resumeText}"""
-        
-        Return ONLY a strict JSON object with these exact keys:
-        - "score": integer 0-100 indicating ATS readiness and quality.
-        - "wordCount": estimated word count.
-        - "sectionsFound": array of strings (e.g., ["Summary", "Experience", "Skills"]).
-        - "sectionsMissing": array of strings (important sections that are missing).
-        - "skillsFound": array of all technical and soft skills found.
-        - "verbsUsed": array of action verbs found.
-        - "hasMetrics": boolean indicating if they used quantifiable numbers.
-        - "metricCount": integer of how many distinct metrics were found.
-        - "improvements": array of objects { "priority": "High"|"Medium"|"Low", "text": "Suggestion here" }.
-        
-        Do not include any other text except valid JSON.
-    `;
-
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                systemInstruction: "You are an ATS parser that exclusively outputs raw JSON without markdown formatting."
-            }
-        });
+        const lower = (resumeText || "").toLowerCase();
+        const wordCount = lower.split(/\s+/).filter(Boolean).length;
         
-        return JSON.parse(cleanJsonOutput(response.text));
+        // Find Sections
+        const expectedSections = ["Experience", "Education", "Skills", "Projects", "Summary"];
+        const sectionsFound = expectedSections.filter(s => lower.includes(s.toLowerCase()));
+        const sectionsMissing = expectedSections.filter(s => !lower.includes(s.toLowerCase()));
+
+        // Find Skills
+        const allSkills = ["react", "javascript", "python", "node", "sql", "aws", "docker", "typescript", "git", "html", "css", "mongodb"];
+        const skillsFound = allSkills.filter(s => lower.includes(s));
+
+        // Action Verbs
+        const verbs = ["developed", "managed", "designed", "optimized", "led", "created", "reduced"];
+        const verbsUsed = verbs.filter(v => lower.includes(v));
+
+        // Metrics
+        const hasMetrics = /\d+%|\d+\+|\$|million|thousand/i.test(lower);
+        
+        // Calculate Fake Score
+        let score = 50;
+        score += (skillsFound.length * 4);
+        score += (sectionsFound.length * 3);
+        if (hasMetrics) score += 15;
+        score = Math.min(100, Math.max(0, score));
+
+        return {
+            score,
+            wordCount,
+            sectionsFound,
+            sectionsMissing,
+            skillsFound,
+            verbsUsed,
+            hasMetrics,
+            metricCount: hasMetrics ? 3 : 0,
+            improvements: [
+                { priority: "High", text: "Add more quantifiable numbers (e.g., 'Improved performance by 25%')." },
+                { priority: "Medium", text: "Include more hard technical skills relevant to the job." },
+                { priority: "Low", text: "Ensure your LinkedIn URL is clearly visible." }
+            ]
+        };
     } catch (error) {
-        console.error('AI parseResume error:', error);
-        throw new Error(`Gemini AI Error: ${error.message}`);
+        console.error('Local Engine Error:', error);
+        throw new Error(`Local Engine Error: ${error.message}`);
     }
 };
 
-/**
- * AI Matching: Compares parsed resume text against a Job Description.
- */
 export const matchJob = async (resumeText, jobDescription) => {
-    const prompt = `
-        Compare candidate's resume against the Job Description.
-        
-        Resume:
-        """${resumeText}"""
-        
-        Job Description:
-        """${jobDescription}"""
-        
-        Output ONLY a strict JSON object with:
-        - "matchPercent": integer 0-100.
-        - "matchedSkills": array of strings (skills present in both).
-        - "missingSkills": array of strings (skills required/preferred in JD but missing in resume).
-        - "feedback": short 2-sentence summary of fit.
-    `;
-
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                systemInstruction: "You are an AI matching engine. Only return valid JSON."
-            }
-        });
+        const resLower = (resumeText || "").toLowerCase();
+        const jdLower = (jobDescription || "").toLowerCase();
         
-        return JSON.parse(cleanJsonOutput(response.text));
+        const allSkills = ["react", "javascript", "python", "node", "sql", "aws", "docker", "kubernetes", "typescript", "git", "css"];
+        
+        const jobSkills = allSkills.filter(s => jdLower.includes(s));
+        const matchedSkills = jobSkills.filter(s => resLower.includes(s));
+        const missingSkills = jobSkills.filter(s => !resLower.includes(s));
+
+        const matchPercent = jobSkills.length === 0 ? 65 : Math.round((matchedSkills.length / jobSkills.length) * 100);
+
+        return {
+            matchPercent,
+            matchedSkills,
+            missingSkills,
+            feedback: "This is a local heuristics match based on keyword overlap. You are a decent fit but could improve your technical stack."
+        };
     } catch (error) {
-        console.error('AI matchJob error:', error);
-        throw new Error('Failed to match job with AI');
+        console.error('Local Engine Match Error:', error);
+        throw new Error(`Match Error: ${error.message}`);
     }
 };
 
-/**
- * AI Rewriting: Improves weak bullets.
- */
 export const rewriteBullets = async (bulletsText, style = 'metrics') => {
-    const styleInstruction = 
-        style === 'metrics' ? 'Add highly realistic quantifiable metrics (percentages, dollars) that fit the context.' :
-        style === 'impact' ? 'Rewrite to emphasize business impact, stakeholder alignment, and leadership.' :
-        'Make the bullet extremely concise and hard-hitting, max 12 words per bullet.';
-
-    const prompt = `
-        Rewrite the following resume bullet points based on this style: ${styleInstruction}
-        
-        Bullets:
-        """
-        ${bulletsText}
-        """
-        
-        Return ONLY a strict JSON array of objects. Each object must have:
-        - "original": the exact original bullet text
-        - "rewritten": the primary rewrite
-        - "alt": an alternative rewrite focusing slightly differently
-    `;
-
     try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                systemInstruction: "You are an executive resume writer. Return only valid JSON arrays."
+        const bullet = (bulletsText || "").trim();
+        return [
+            {
+                original: bullet,
+                rewritten: `Spearheaded initiatives by ${style === 'metrics' ? 'increasing efficiency by 40%' : 'aligning cross-functional teams'}, originally stating: ${bullet.slice(0, 30)}...`,
+                alt: `Optimized operations by deploying modern frameworks, resolving legacy bottlenecks.`
             }
-        });
-        
-        return JSON.parse(cleanJsonOutput(response.text));
+        ];
     } catch (error) {
-        console.error('AI rewriteBullets error:', error);
-        throw new Error('Failed to rewrite bullets with AI');
+        console.error('Local Engine Rewrite Error:', error);
+        throw new Error(`Rewrite Error: ${error.message}`);
     }
 };
